@@ -3,6 +3,15 @@
   "version": "0.0.1",
   "description": "shared types",
   "scripts": {
-    "build": "tsc --emitDeclarationOnly"
-  }
+    "build": "tsc"
+  },
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": "./dist/index.js"
 }

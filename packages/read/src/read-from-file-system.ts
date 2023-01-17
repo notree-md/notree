@@ -1,6 +1,6 @@
 import { GraphData } from '@mindgraph/types';
-import fs from 'fs';
-import readline from 'node:readline';
+import * as fs from 'fs';
+import * as readline from 'node:readline';
 
 const MARKDOWN_EXTENSION = '.md';
 const HIDDEN_FILES_REGEX = /^\./;
@@ -12,8 +12,8 @@ export async function readFromFileSystem(path: string): Promise<GraphData> {
 
 async function build_graph(
   path: string,
-  graph: NotesGraphData = { nodes: [], links: [] },
-): Promise<NotesGraphData> {
+  graph: GraphData = { nodes: [], links: [] },
+): Promise<GraphData> {
   const dir = await fs.promises.opendir(path);
 
   for await (const dirent of dir) {
@@ -26,7 +26,7 @@ async function build_graph(
 async function add_dirent_to_graph(
   path: string,
   dirent: fs.Dirent,
-  graph: NotesGraphData,
+  graph: GraphData,
 ) {
   if (HIDDEN_FILES_REGEX.test(dirent.name)) return;
 
@@ -46,7 +46,7 @@ async function add_dirent_to_graph(
 
 async function add_links_to_graph(
   filePath: string,
-  graph: NotesGraphData,
+  graph: GraphData,
 ): Promise<number> {
   let linkCount = 0;
 
