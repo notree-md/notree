@@ -1,0 +1,8 @@
+{
+  "name": "@mindgraph/read",
+  "version": "0.0.1",
+  "description": "",
+  "devDependencies": {
+    "@mindgraph/types": "workspace:*"
+  }
+}
