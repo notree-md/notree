@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "description": "shared types",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint src/**",
+    "typecheck": "tsc -noEmit"
   },
   "type": "module",
   "license": "MIT",

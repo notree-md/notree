@@ -3,9 +3,12 @@
   "version": "0.0.0",
   "description": "monorepo for @mindgraph/*",
   "scripts": {
+    "ci": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run build",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
     "format": "prettier . --write",
-    "format:check": "prettier . --check",
-    "build": "turbo run build"
+    "format:check": "prettier . --check"
   },
   "private": true,
   "type": "module",
