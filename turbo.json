@@ -3,6 +3,9 @@
   "pipeline": {
     "build": {},
     "lint": {},
-    "dev": {}
+    "typecheck": {},
+    "dev": {
+      "dependsOn": ["^build"]
+    }
   }
 }

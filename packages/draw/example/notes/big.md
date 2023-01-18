@@ -1,0 +1,8 @@
+- [med1](./med/med1.md)
+- [med2](./med/med2.md)
+- [small1](./small/small1.md)
+- [small2](./small/small2.md)
+- [small3](./small/small3.md)
+- [small4](./small/small4.md)
+- [small5](./small/small5.md)
+- [small6](./small/small6.md)
