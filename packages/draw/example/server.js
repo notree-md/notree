@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
-import { readFromFileSystem } from 'mind-graph';
+import { readFromFileSystem } from '@mindgraph/read';
 
 const PORT = 5173;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

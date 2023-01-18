@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "data loaders",
   "scripts": {
-    "build": "tsc",
+    "build": "rollup -c",
     "lint": "eslint src/**",
     "typecheck": "tsc -noEmit"
   },
@@ -19,6 +19,8 @@
   "exports": "./dist/index.js",
   "devDependencies": {
     "@mindgraph/types": "workspace:*",
-    "@types/node": "^18.11.18"
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.11.18",
+    "rollup": "^3.10.0"
   }
 }
