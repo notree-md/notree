@@ -7,6 +7,21 @@
     "lint": "eslint src/**",
     "typecheck": "tsc --noEmit"
   },
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/mindgraph.umd.cjs",
+  "module": "./dist/mindgraph.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/mindgraph.js",
+      "require": "./dist/mindgraph.umd.cjs"
+    }
+  },
   "devDependencies": {
     "@types/d3-array": "^3.0.4",
     "@types/d3-force": "^3.0.4",

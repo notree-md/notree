@@ -1,0 +1,3 @@
+- [small1](../small/small1.md)
+- [small2](../small/small2.md)
+- [small3](../small/small3.md)
