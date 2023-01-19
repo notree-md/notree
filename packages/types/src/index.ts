@@ -4,12 +4,15 @@ export type NodeBase = {
   linkCount: number;
 };
 
-export type Link = {
+export type LinkBase = {
   source: string;
   target: string;
 };
 
-export type GraphData<TNode extends NodeBase = NodeBase> = {
+export type GraphData<
+  TNode extends NodeBase = NodeBase,
+  TLink extends LinkBase = LinkBase,
+> = {
   nodes: TNode[];
-  links: Link[];
+  links: TLink[];
 };
