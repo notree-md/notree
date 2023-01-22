@@ -1,15 +1,16 @@
 {
   "name": "@mindgraph/draw",
   "version": "0.0.1",
-  "description": "markdown note graph view builder",
+  "description": "web based graph view for markdown notes",
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
     "lint": "eslint src/**",
     "typecheck": "tsc --noEmit",
     "dev": "node example/server.js"
   },
-  "private": true,
   "type": "module",
+  "private": true,
+  "author": "jollyjerr <jollyjerr@gmail.com>",
   "license": "MIT",
   "files": [
     "dist"

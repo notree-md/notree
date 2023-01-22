@@ -1,14 +1,15 @@
 {
   "name": "@mindgraph/types",
   "version": "0.0.1",
-  "description": "shared types",
+  "description": "shared types for @mindgraph/*",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src/**",
     "typecheck": "tsc -noEmit"
   },
-  "private": true,
   "type": "module",
+  "private": true,
+  "author": "jollyjerr <jollyjerr@gmail.com>",
   "license": "MIT",
   "files": [
     "dist"
