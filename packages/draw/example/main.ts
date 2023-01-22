@@ -10,7 +10,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const data = await fetch('/api/notes').then((response) => response.json());
-    draw(data, body);
+    draw({
+      data,
+      canvasElement: body,
+      style: {
+        nodeColor: '#01b0d3',
+        linkColor: '#01586a',
+        titleColor: '#ffffff',
+      },
+      onNodeClick: (node) => {
+        console.log(node);
+      },
+    });
   } catch (error) {
     alert(error);
   }

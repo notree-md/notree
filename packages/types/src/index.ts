@@ -1,4 +1,4 @@
-export type NodeBase = {
+export type Node = {
   id: string;
   name: string;
   linkCount: number;
@@ -9,7 +9,7 @@ export type Link = {
   target: string;
 };
 
-export type GraphData<TNode extends NodeBase = NodeBase> = {
-  nodes: TNode[];
+export type GraphData = {
+  nodes: Node[];
   links: Link[];
 };
