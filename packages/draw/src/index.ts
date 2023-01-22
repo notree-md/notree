@@ -13,21 +13,36 @@ import { create, select, Selection } from 'd3-selection';
 type SimulationNode = SimulationNodeDatum & GraphData['nodes'][0];
 type NodeClickCallback<TReturn = void> = (node: SimulationNode) => TReturn;
 type NodeClickEvent = { layerX: number; layerY: number };
+type GraphStyleConfig = {
+  nodeColor: string;
+  linkColor: string;
+  titleColor: string;
+};
 
 let ZOOM_TRANSFORM = zoomIdentity;
 
-export function draw(
-  notes: GraphData,
-  canvasElement: HTMLCanvasElement,
-  onNodeClick?: NodeClickCallback,
-) {
-  const resources = initialize_graph_resources(notes, canvasElement);
-  const graphSelections = create_graph_selections(resources);
-  const simulation = create_simulation(resources, graphSelections);
+export interface MindGraphConfig {
+  data: GraphData;
+  canvasElement: HTMLCanvasElement;
+  onNodeClick?: NodeClickCallback;
+  style?: Partial<GraphStyleConfig>;
+}
 
-  simulation.on('tick', () => handle_tick(resources, graphSelections));
+export function draw({
+  data,
+  canvasElement,
+  onNodeClick,
+  style,
+}: MindGraphConfig) {
+  const styles = merge_style(style);
+
+  const resources = initialize_graph_resources(data, canvasElement);
+  const graphSelections = create_graph_selections(resources);
+  const simulation = create_simulation(resources, graphSelections, styles);
+
+  simulation.on('tick', () => handle_tick(resources, graphSelections, styles));
   resources.canvas.on('click', (event: NodeClickEvent) =>
-    handle_click(event, resources, graphSelections, onNodeClick),
+    handle_click(event, resources, graphSelections, styles, onNodeClick),
   );
 }
 
@@ -96,6 +111,7 @@ type GraphResources = ReturnType<typeof initialize_graph_resources>;
 function create_simulation(
   resources: GraphResources,
   graphSelections: GraphSelections,
+  style: GraphStyleConfig,
 ) {
   const { nodes, width, height, links, canvas } = resources;
 
@@ -108,7 +124,7 @@ function create_simulation(
       .scaleExtent([0.4, 16])
       .on('zoom', (e: { transform: ZoomTransform }) => {
         ZOOM_TRANSFORM = e.transform;
-        handle_tick(resources, graphSelections);
+        handle_tick(resources, graphSelections, style);
       }),
   );
 
@@ -147,6 +163,7 @@ const node_title_padding = 12;
 function handle_tick(
   { canvasContext, canvas }: GraphResources,
   selections: GraphSelections,
+  style: GraphStyleConfig,
 ) {
   if (!canvasContext) return;
 
@@ -159,13 +176,14 @@ function handle_tick(
     .attr('x2', (l) => l.target.x || 0)
     .attr('y2', (l) => l.target.y || 0);
 
-  draw_canvas({ canvas, canvasContext, selections });
+  draw_canvas({ canvas, canvasContext, selections, style });
 }
 
 function handle_click(
   { layerX, layerY }: NodeClickEvent,
   { clickMapCanvas, clickMapContext, nodeColors }: GraphResources,
   selections: GraphSelections,
+  style: GraphStyleConfig,
   onNodeClick?: NodeClickCallback,
 ) {
   if (!clickMapContext || typeof onNodeClick !== 'function') return;
@@ -174,7 +192,8 @@ function handle_click(
     canvas: clickMapCanvas,
     canvasContext: clickMapContext,
     selections: selections,
-    nodeColor: nodeColors,
+    nodeColors: nodeColors,
+    style,
   });
   const node = colorToNode[
     rgb_array_to_style(
@@ -192,13 +211,15 @@ type DrawCanvasArgs = {
   canvas: Selection<HTMLCanvasElement, any, any, any>;
   canvasContext: CanvasRenderingContext2D;
   selections: GraphSelections;
-  nodeColor?: string | string[];
+  nodeColors?: string[];
+  style: GraphStyleConfig;
 };
 function draw_canvas({
   canvas,
   canvasContext,
   selections: { nodeObjects, linkObjects },
-  nodeColor = '#fff',
+  nodeColors,
+  style,
 }: DrawCanvasArgs) {
   canvasContext.save();
 
@@ -214,7 +235,7 @@ function draw_canvas({
   linkObjects.each(function (link) {
     if (link.source.x && link.source.y && link.target.x && link.target.y) {
       canvasContext.beginPath();
-      canvasContext.strokeStyle = '#999';
+      canvasContext.strokeStyle = style.linkColor;
 
       canvasContext.moveTo(link.source.x, link.source.y);
       canvasContext.lineTo(link.target.x, link.target.y);
@@ -224,12 +245,12 @@ function draw_canvas({
     }
   });
 
-  const mapColorToNode = !(typeof nodeColor === 'string');
+  const mapColorToNode = !!nodeColors;
   const nodeColorMap: Record<string, SimulationNode> = {};
   nodeObjects.each(function (n, i) {
     if (n.x && n.y) {
       const radius = Number(select(this).attr('r'));
-      const nodeFill = typeof nodeColor === 'string' ? nodeColor : nodeColor[i];
+      const nodeFill = mapColorToNode ? nodeColors[i] : style.nodeColor;
 
       canvasContext.beginPath();
       canvasContext.fillStyle = nodeFill;
@@ -240,7 +261,7 @@ function draw_canvas({
       const name = n.name.split('.md')[0];
 
       canvasContext.beginPath();
-      canvasContext.fillStyle = '#999';
+      canvasContext.fillStyle = style.titleColor;
       canvasContext.fillText(
         name,
         n.x - canvasContext.measureText(name).width / 2,
@@ -273,4 +294,16 @@ function generate_unique_node_colors(nodeCount: number) {
 
 function rgb_array_to_style(rgbArray: number[]) {
   return `rgb(${rgbArray.slice(0, 3).join(',')})`;
+}
+
+const default_styles = {
+  nodeColor: 'red',
+  linkColor: 'blue',
+  titleColor: 'green',
+};
+function merge_style(style?: MindGraphConfig['style']): GraphStyleConfig {
+  return {
+    ...default_styles,
+    ...style,
+  };
 }

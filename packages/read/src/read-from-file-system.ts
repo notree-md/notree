@@ -1,10 +1,11 @@
 import { GraphData } from '@mindgraph/types';
 import * as fs from 'fs';
 import * as readline from 'node:readline';
-
-const MARKDOWN_EXTENSION = '.md';
-const HIDDEN_FILES_REGEX = /^\./;
-const LINK_CONTENT_REGEX = /\]\((.*?)\)/g;
+import {
+  HIDDEN_FILES_REGEX,
+  LINK_CONTENT_REGEX,
+  MARKDOWN_EXTENSION,
+} from './constants';
 
 export async function readFromFileSystem(path: string): Promise<GraphData> {
   return build_graph(path);

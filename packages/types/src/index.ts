@@ -1,18 +1,15 @@
-export type NodeBase = {
+export type Node = {
   id: string;
   name: string;
   linkCount: number;
 };
 
-export type LinkBase = {
+export type Link = {
   source: string;
   target: string;
 };
 
-export type GraphData<
-  TNode extends NodeBase = NodeBase,
-  TLink extends LinkBase = LinkBase,
-> = {
-  nodes: TNode[];
-  links: TLink[];
+export type GraphData = {
+  nodes: Node[];
+  links: Link[];
 };
