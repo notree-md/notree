@@ -1,6 +1,6 @@
 import { GraphData } from '@mindgraph/types';
 import { map } from 'd3-array';
-import { SimulationNode } from './types';
+import { GraphSimulationConfig, SimulationNode } from './types';
 import {
   SimulationNodeDatum,
   forceSimulation,
@@ -22,23 +22,39 @@ export function loadSimulationNodeDatums({ nodes, links }: GraphData) {
 export type BuildSimulationArgs = {
   width: number;
   height: number;
-} & ReturnType<typeof loadSimulationNodeDatums>;
+} & ReturnType<typeof loadSimulationNodeDatums> &
+  GraphSimulationConfig;
 
 export function buildSimulation({
   nodes,
   links,
   width,
   height,
+  chargeStrength,
+  centerStrength,
+  linkStrength,
 }: BuildSimulationArgs) {
   return forceSimulation(nodes)
-    .force('charge', forceManyBody().strength(-400))
-    .force('center', forceCenter(width / 2, height / 2).strength(0.28))
+    .force('charge', forceManyBody().strength(chargeStrength))
+    .force(
+      'center',
+      forceCenter(width / 2, height / 2).strength(centerStrength),
+    )
     .force(
       'link',
       forceLink(links)
         .id((l) => (l as SimulationNode).id)
-        .strength(0.06),
+        .strength(linkStrength),
     );
+}
+
+export function getSimulationConfig(
+  simulationConfig: Partial<GraphSimulationConfig> | undefined,
+) {
+  return {
+    ...default_simulation_config,
+    ...simulationConfig,
+  };
 }
 
 function merge_node_datum<TDatum extends Record<string, string | number>>(
@@ -58,4 +74,12 @@ const empty_node_datum = {
   vy: undefined,
   fx: undefined,
   fy: undefined,
+};
+
+const default_simulation_config = {
+  minZoom: 0.4,
+  maxZoom: 16,
+  chargeStrength: -400,
+  centerStrength: 0.28,
+  linkStrength: 0.06,
 };

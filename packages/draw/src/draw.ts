@@ -1,6 +1,10 @@
 import { zoomIdentity, zoom, ZoomTransform } from 'd3-zoom';
 import { drawFrame, loadCanvas } from './canvas';
-import { buildSimulation, loadSimulationNodeDatums } from './simulation';
+import {
+  buildSimulation,
+  getSimulationConfig,
+  loadSimulationNodeDatums,
+} from './simulation';
 import {
   convertRgbArrayToStyle,
   generateUniqueColors,
@@ -14,19 +18,22 @@ export function draw({
   canvasElement,
   onNodeClick,
   style,
+  simulationConfig,
 }: MindGraphConfig) {
   let zoomTransform = zoomIdentity;
 
   const styleConfig = getStyles(style);
+  const simulationSettings = getSimulationConfig(simulationConfig);
 
   const simulationDatums = loadSimulationNodeDatums(data);
   const simulation = buildSimulation({
     ...simulationDatums,
+    ...simulationSettings,
     width: styleConfig.width,
     height: styleConfig.height,
   });
 
-  const svgElements = loadSvgElements(simulationDatums);
+  const svgElements = loadSvgElements(simulationDatums, styleConfig);
   const visualCanvas = loadCanvas(styleConfig, true, canvasElement);
 
   const tick = () => {
@@ -46,7 +53,7 @@ export function draw({
         [0, 0],
         [styleConfig.width, styleConfig.height],
       ])
-      .scaleExtent([0.4, 16])
+      .scaleExtent([simulationSettings.minZoom, simulationSettings.maxZoom])
       .on('zoom', (e: { transform: ZoomTransform }) => {
         zoomTransform = e.transform;
 

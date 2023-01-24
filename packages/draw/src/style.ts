@@ -29,9 +29,11 @@ export function convertRgbArrayToStyle(rgbArray: number[]) {
   return `rgb(${rgbArray.slice(0, 3).join(',')})`;
 }
 
-const default_styles = {
+const default_styles: GraphStyleConfig = {
   nodeColor: 'red',
   linkColor: 'blue',
   titleColor: 'green',
   nodeTitlePadding: 12,
+  nodeScaleFactor: 0.96,
+  minimumNodeSize: 4,
 };
