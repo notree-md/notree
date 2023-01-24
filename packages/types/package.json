@@ -8,7 +8,6 @@
     "typecheck": "tsc -noEmit"
   },
   "type": "module",
-  "private": true,
   "author": "jollyjerr <jollyjerr@gmail.com>",
   "license": "MIT",
   "files": [

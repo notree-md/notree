@@ -9,7 +9,6 @@
     "dev": "node example/server.js"
   },
   "type": "module",
-  "private": true,
   "author": "jollyjerr <jollyjerr@gmail.com>",
   "license": "MIT",
   "files": [
