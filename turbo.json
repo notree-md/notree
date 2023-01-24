@@ -6,7 +6,9 @@
       "dependsOn": ["@mindgraph/types#build"]
     },
     "lint": {},
-    "typecheck": {},
+    "typecheck": {
+      "dependsOn": ["@mindgraph/types#build"]
+    },
     "dev": {
       "dependsOn": ["^build"]
     }
