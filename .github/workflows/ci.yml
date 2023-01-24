@@ -21,4 +21,6 @@ jobs:
           node-version: 18
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build --filter @mindgraph/types
+      - run: pnpm install --frozen-lockfile
       - run: pnpm ci
