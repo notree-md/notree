@@ -20,21 +20,21 @@ yarn add @mindgraph/read @mindgraph/draw
 
 ```tsx
 // On the server
-import { readFromFileSystem } from "@mindgraph/read";
+import { readFromFileSystem } from '@mindgraph/read';
 
 app.get('/api/v1/notes', async (res) => {
-   const notes = await readFromFileSystem('path/to/obsidian/directory') 
-})
+  const notes = await readFromFileSystem('path/to/obsidian/directory');
+});
 
 // On the client
-import { draw } from "@mindgraph/draw";
+import { draw } from '@mindgraph/draw';
 
-const notes = await fetch('/api/v1/notes').then(res => res.json());
+const notes = await fetch('/api/v1/notes').then((res) => res.json());
 const canvas = document.getElementById('your-canvas');
 
 draw({
-  data: notes
-})
+  data: notes,
+});
 ```
 
 ## Contributing
