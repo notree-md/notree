@@ -1,6 +1,6 @@
 {
   "name": "@mindgraph/draw",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "web based graph view for markdown notes",
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
