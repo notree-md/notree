@@ -1,6 +1,6 @@
 {
   "name": "@mindgraph/draw",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "web based graph view for markdown notes",
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
@@ -14,13 +14,13 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/mindgraph.umd.cjs",
-  "module": "./dist/mindgraph.js",
+  "main": "./dist/draw.umd.cjs",
+  "module": "./dist/draw.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/mindgraph.js",
-      "require": "./dist/mindgraph.umd.cjs"
+      "import": "./dist/draw.js",
+      "require": "./dist/draw.umd.cjs"
     }
   },
   "devDependencies": {
