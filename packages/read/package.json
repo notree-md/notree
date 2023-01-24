@@ -1,14 +1,15 @@
 {
   "name": "@mindgraph/read",
   "version": "0.0.1",
-  "description": "data loaders",
+  "description": "data loaders for @mindgraph/draw",
   "scripts": {
     "build": "rollup -c",
     "lint": "eslint src/**",
     "typecheck": "tsc -noEmit"
   },
-  "private": true,
   "type": "module",
+  "private": true,
+  "author": "jollyjerr <jollyjerr@gmail.com>",
   "license": "MIT",
   "files": [
     "dist"

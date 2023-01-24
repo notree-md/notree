@@ -1,6 +1,5 @@
 {
   "name": "mindgraph",
-  "version": "0.0.0",
   "description": "monorepo for @mindgraph/*",
   "scripts": {
     "ci": "pnpm run format:check && turbo run build lint typecheck",
@@ -11,16 +10,13 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
-  "private": true,
   "type": "module",
-  "author": "jollyjerr",
+  "private": true,
+  "author": "jollyjerr <jollyjerr@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jollyjerr/mindgraph.git"
-  },
-  "bugs": {
-    "url": "https://github.com/jollyjerr/mindgraph/issues"
   },
   "homepage": "https://github.com/jollyjerr/mindgraph#readme",
   "devDependencies": {
