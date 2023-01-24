@@ -1,8 +1,9 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
+    "@mindgraph/types#build": {},
     "build": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["@mindgraph/types#build"]
     },
     "lint": {},
     "typecheck": {},
