@@ -25,7 +25,6 @@
   },
   "devDependencies": {
     "@mindgraph/read": "workspace:*",
-    "@mindgraph/types": "workspace:*",
     "@types/d3-array": "^3.0.4",
     "@types/d3-force": "^3.0.4",
     "@types/d3-selection": "^3.0.4",
@@ -35,6 +34,7 @@
     "vitest": "^0.27.0"
   },
   "dependencies": {
+    "@mindgraph/types": "workspace:*",
     "d3-array": "^3.2.1",
     "d3-force": "^3.0.0",
     "d3-selection": "^3.0.0",

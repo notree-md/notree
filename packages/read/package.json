@@ -18,9 +18,11 @@
   "types": "./dist/index.d.ts",
   "exports": "./dist/index.js",
   "devDependencies": {
-    "@mindgraph/types": "workspace:*",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/node": "^18.11.18",
     "rollup": "^3.10.0"
+  },
+  "dependencies": {
+    "@mindgraph/types": "workspace:*"
   }
 }
