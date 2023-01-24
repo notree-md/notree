@@ -36,13 +36,13 @@ importers:
       vite: ^4.0.0
       vitest: ^0.27.0
     dependencies:
+      '@mindgraph/types': link:../types
       d3-array: 3.2.1
       d3-force: 3.0.0
       d3-selection: 3.0.0
       d3-zoom: 3.0.0
     devDependencies:
       '@mindgraph/read': link:../read
-      '@mindgraph/types': link:../types
       '@types/d3-array': 3.0.4
       '@types/d3-force': 3.0.4
       '@types/d3-selection': 3.0.4
@@ -57,8 +57,9 @@ importers:
       '@rollup/plugin-typescript': ^11.0.0
       '@types/node': ^18.11.18
       rollup: ^3.10.0
-    devDependencies:
+    dependencies:
       '@mindgraph/types': link:../types
+    devDependencies:
       '@rollup/plugin-typescript': 11.0.0_rollup@3.10.0
       '@types/node': 18.11.18
       rollup: 3.10.0
