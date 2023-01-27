@@ -71,7 +71,8 @@ export function drawFrame({
   const nodeColorMap: Record<string, SimulationNode> = {};
   nodeObjects.each(function (n, i) {
     if (n.x && n.y) {
-      const radius = Number(select(this).attr('r'));
+      const initialRadius = Number(select(this).attr('r'));
+      const radius = mapColorToNode ? initialRadius + 3 : initialRadius;
       const nodeFill = mapColorToNode ? uniqueNodeColors[i] : style.nodeColor;
 
       context.beginPath();

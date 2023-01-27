@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         titleColor: '#ffffff',
       },
       onNodeClick: (node) => {
-          alert(node.id);
+        alert(node.id);
       },
     });
   } catch (error) {
