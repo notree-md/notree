@@ -1,5 +1,11 @@
 # @mindgraph/draw
 
+## 0.4.0
+
+### Minor Changes
+
+- add hover interactivity
+
 ## 0.3.0
 
 ### Minor Changes
