@@ -11,7 +11,9 @@ export type NodeClickEvent = { layerX: number; layerY: number };
 
 export type GraphStyleConfig = {
   nodeColor: string;
+  activeNodeColor: string;
   linkColor: string;
+  activeLinkColor: string;
   titleColor: string;
   nodeTitlePadding: number;
   minimumNodeSize: number;

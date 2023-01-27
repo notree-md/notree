@@ -44,6 +44,7 @@ export function draw({
       style: styleConfig,
       svgElements,
       zoomTransform,
+      activeNode,
     });
   };
 
@@ -76,6 +77,7 @@ export function draw({
       uniqueNodeColors: clickMapColors,
       svgElements,
       zoomTransform,
+      activeNode,
     });
 
     const clickedNode =
@@ -101,7 +103,9 @@ export function draw({
       uniqueNodeColors: clickMapColors,
       svgElements,
       zoomTransform,
+      activeNode,
     });
+    tick();
 
     const hoverNode =
       uniqueColorToNode[

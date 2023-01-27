@@ -32,6 +32,7 @@ export interface DrawFrameArgs {
   style: ReturnType<typeof getStyles>;
   zoomTransform: ZoomTransform;
   uniqueNodeColors?: string[];
+  activeNode: SimulationNode | null;
 }
 
 export function drawFrame({
@@ -40,6 +41,7 @@ export function drawFrame({
   uniqueNodeColors,
   zoomTransform,
   style,
+  activeNode,
 }: DrawFrameArgs) {
   if (!context) return {};
 
@@ -57,7 +59,15 @@ export function drawFrame({
   linkObjects.each(function (link) {
     if (link.source.x && link.source.y && link.target.x && link.target.y) {
       context.beginPath();
-      context.strokeStyle = style.linkColor;
+
+      if (
+        activeNode &&
+        (link.source.id === activeNode.id || link.target.id === activeNode.id)
+      ) {
+        context.strokeStyle = style.activeLinkColor;
+      } else {
+        context.strokeStyle = style.linkColor;
+      }
 
       context.moveTo(link.source.x, link.source.y);
       context.lineTo(link.target.x, link.target.y);
@@ -71,13 +81,21 @@ export function drawFrame({
   const nodeColorMap: Record<string, SimulationNode> = {};
   nodeObjects.each(function (n, i) {
     if (n.x && n.y) {
+      const isActiveNode = activeNode && n.id === activeNode.id;
       const initialRadius = Number(select(this).attr('r'));
       const radius = mapColorToNode ? initialRadius + 3 : initialRadius;
       const nodeFill = mapColorToNode ? uniqueNodeColors[i] : style.nodeColor;
 
       context.beginPath();
-      context.fillStyle = nodeFill;
-      context.arc(n.x, n.y, radius, 0, Math.PI * 2);
+
+      if (isActiveNode) {
+        context.fillStyle = mapColorToNode ? nodeFill : style.activeNodeColor;
+        context.arc(n.x, n.y, radius + 1, 0, Math.PI * 2);
+      } else {
+        context.fillStyle = nodeFill;
+        context.arc(n.x, n.y, radius, 0, Math.PI * 2);
+      }
+
       context.fill();
       context.closePath();
 
@@ -85,11 +103,21 @@ export function drawFrame({
 
       context.beginPath();
       context.fillStyle = style.titleColor;
-      context.fillText(
-        name,
-        n.x - context.measureText(name).width / 2,
-        n.y + radius + style.nodeTitlePadding,
-      );
+
+      if (isActiveNode) {
+        context.fillText(
+          name,
+          n.x - context.measureText(name).width / 2,
+          n.y + radius + style.nodeTitlePadding + 2,
+        );
+      } else {
+        context.fillText(
+          name,
+          n.x - context.measureText(name).width / 2,
+          n.y + radius + style.nodeTitlePadding,
+        );
+      }
+
       context.fill();
       context.closePath();
 

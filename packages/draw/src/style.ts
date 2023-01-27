@@ -26,12 +26,15 @@ export function generateUniqueColors(colorCount: number) {
 }
 
 export function convertRgbArrayToStyle(rgbArray: number[]) {
+  if (rgbArray[3] && rgbArray[3] !== 255) return '';
   return `rgb(${rgbArray.slice(0, 3).join(',')})`;
 }
 
 const default_styles: GraphStyleConfig = {
   nodeColor: 'red',
+  activeNodeColor: 'white',
   linkColor: 'blue',
+  activeLinkColor: 'white',
   titleColor: 'green',
   nodeTitlePadding: 12,
   nodeScaleFactor: 0.96,
