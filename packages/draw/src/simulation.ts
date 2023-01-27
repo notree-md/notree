@@ -33,7 +33,22 @@ export function buildSimulation({
   chargeStrength,
   centerStrength,
   linkStrength,
+  alpha,
+  alphaDecay,
+  initialClusterStrength,
 }: BuildSimulationArgs) {
+  // https://gist.github.com/mbostock/7881887
+  nodes.forEach((node, i) => {
+    node.x =
+      Math.cos((i / initialClusterStrength) * 2 * Math.PI) * 200 +
+      width / 2 +
+      Math.random();
+    node.y =
+      Math.sin((i / initialClusterStrength) * 2 * Math.PI) * 200 +
+      height / 2 +
+      Math.random();
+  });
+
   return forceSimulation(nodes)
     .force('charge', forceManyBody().strength(chargeStrength))
     .force(
@@ -45,7 +60,9 @@ export function buildSimulation({
       forceLink(links)
         .id((l) => (l as SimulationNode).id)
         .strength(linkStrength),
-    );
+    )
+    .alpha(alpha)
+    .alphaDecay(alphaDecay);
 }
 
 export function getSimulationConfig(
@@ -76,10 +93,13 @@ const empty_node_datum = {
   fy: undefined,
 };
 
-const default_simulation_config = {
+const default_simulation_config: GraphSimulationConfig = {
   minZoom: 0.4,
   maxZoom: 16,
   chargeStrength: -400,
   centerStrength: 0.28,
   linkStrength: 0.06,
+  alpha: 0.4,
+  alphaDecay: 0.01,
+  initialClusterStrength: 8,
 };

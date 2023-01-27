@@ -24,6 +24,9 @@ export type GraphSimulationConfig = {
   chargeStrength: number;
   centerStrength: number;
   linkStrength: number;
+  alpha: number;
+  alphaDecay: number;
+  initialClusterStrength: number;
 };
 
 export interface MindGraphConfig {
