@@ -11,7 +11,7 @@ import {
   getStyles,
 } from './style';
 import { loadSvgElements, nextFrame } from './svg';
-import { MindGraphConfig, NodeClickEvent } from './types';
+import { MindGraphConfig, NodeClickEvent, SimulationNode } from './types';
 
 export function draw({
   data,
@@ -20,6 +20,7 @@ export function draw({
   style,
   simulationConfig,
 }: MindGraphConfig) {
+  let activeNode: SimulationNode | null = null;
   let zoomTransform = zoomIdentity;
 
   const styleConfig = getStyles(style);
@@ -43,6 +44,7 @@ export function draw({
       style: styleConfig,
       svgElements,
       zoomTransform,
+      activeNode,
     });
   };
 
@@ -75,6 +77,7 @@ export function draw({
       uniqueNodeColors: clickMapColors,
       svgElements,
       zoomTransform,
+      activeNode,
     });
 
     const clickedNode =
@@ -88,6 +91,37 @@ export function draw({
 
     if (clickedNode) {
       onNodeClick(clickedNode);
+    }
+  });
+
+  visualCanvas.element.on('mousemove', ({ offsetX, offsetY }: MouseEvent) => {
+    if (!clickMapCanvas.context) return;
+
+    const uniqueColorToNode = drawFrame({
+      canvas: clickMapCanvas,
+      style: styleConfig,
+      uniqueNodeColors: clickMapColors,
+      svgElements,
+      zoomTransform,
+      activeNode,
+    });
+    tick();
+
+    const hoverNode =
+      uniqueColorToNode[
+        convertRgbArrayToStyle(
+          Array.from(
+            clickMapCanvas.context.getImageData(offsetX, offsetY, 1, 1).data,
+          ),
+        )
+      ];
+
+    if (hoverNode) {
+      activeNode = hoverNode;
+      visualCanvas.element.style('cursor', 'pointer');
+    } else {
+      activeNode = null;
+      visualCanvas.element.style('cursor', 'default');
     }
   });
 }
