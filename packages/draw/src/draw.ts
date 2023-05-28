@@ -48,6 +48,14 @@ export function draw({
     });
   };
 
+  window.addEventListener('resize', () => {
+    const { width, height, deviceScale } = getStyles(style);
+    visualCanvas.element.attr('width', width * deviceScale);
+    visualCanvas.element.attr('height', height * deviceScale);
+    visualCanvas.context?.scale(deviceScale, deviceScale);
+    tick();
+  });
+
   visualCanvas.element.call(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     zoom<HTMLCanvasElement, any>()
