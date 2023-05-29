@@ -1,11 +1,42 @@
-import { create, select } from 'd3-selection';
+import { create, select, Selection } from 'd3-selection';
 import { ZoomTransform } from 'd3-zoom';
-import { getStyles } from './style';
+import { createStyles } from './style';
 import { loadSvgElements } from './svg';
 import { SimulationNode } from './types';
 
+export class MindGraphCanvas {
+  constructor(
+    initialWidth: number,
+    initialHeight: number,
+    canvasElement?: HTMLCanvasElement,
+    deviceScale?: number,
+  ) {
+    this.deviceScale = deviceScale;
+    this.element = canvasElement ? select(canvasElement) : create('canvas');
+    this.setDimensions(initialWidth, initialHeight);
+
+    this.context = this.element.node()?.getContext('2d') || undefined;
+
+    if (this.deviceScale) {
+      this.context?.scale(this.deviceScale, this.deviceScale);
+    }
+  }
+
+  public setDimensions(width: number, height: number): void {
+    const appliedWidth = this.deviceScale ? width * this.deviceScale : width;
+    const appliedHeight = this.deviceScale ? height * this.deviceScale : height;
+
+    this.element.attr('width', appliedWidth);
+    this.element.attr('height', appliedHeight);
+  }
+
+  private element: Selection<HTMLCanvasElement, undefined, null, undefined>;
+  private context: CanvasRenderingContext2D | undefined;
+  private deviceScale: number | undefined;
+}
+
 export function loadCanvas(
-  { width, height, deviceScale }: ReturnType<typeof getStyles>,
+  { width, height, deviceScale }: ReturnType<typeof createStyles>,
   scaledToDevice: boolean,
   canvasElement?: HTMLCanvasElement,
 ) {
@@ -29,7 +60,7 @@ export function loadCanvas(
 export interface DrawFrameArgs {
   canvas: ReturnType<typeof loadCanvas>;
   svgElements: ReturnType<typeof loadSvgElements>;
-  style: ReturnType<typeof getStyles>;
+  style: ReturnType<typeof createStyles>;
   zoomTransform: ZoomTransform;
   uniqueNodeColors?: string[];
   activeNode: SimulationNode | null;

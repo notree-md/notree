@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const data = await fetch('/api/notes').then((response) => response.json());
-    draw({
+    const { focus } = draw({
       data,
       canvasElement: body,
       style: {
@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         alert(node.id);
       },
     });
+
+    setTimeout(() => {
+      console.log(data.nodes[0].id);
+      focus(data.nodes[0].id);
+    }, 3000);
   } catch (error) {
     alert(error);
   }

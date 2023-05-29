@@ -1,17 +1,18 @@
 import { zoomIdentity, zoom, ZoomTransform } from 'd3-zoom';
 import { drawFrame, loadCanvas } from './canvas';
-import {
-  buildSimulation,
-  getSimulationConfig,
-  loadSimulationNodeDatums,
-} from './simulation';
+import { MindGraphSimulation } from './simulation';
 import {
   convertRgbArrayToStyle,
   generateUniqueColors,
-  getStyles,
+  createStyles,
 } from './style';
 import { loadSvgElements, nextFrame } from './svg';
-import { MindGraphConfig, NodeClickEvent, SimulationNode } from './types';
+import {
+  MindGraphApi,
+  MindGraphConfig,
+  NodeClickEvent,
+  SimulationNode,
+} from './types';
 
 export function draw({
   data,
@@ -19,17 +20,14 @@ export function draw({
   onNodeClick,
   style,
   simulationConfig,
-}: MindGraphConfig) {
+}: MindGraphConfig): MindGraphApi {
   let activeNode: SimulationNode | null = null;
   let zoomTransform = zoomIdentity;
 
-  const styleConfig = getStyles(style);
-  const simulationSettings = getSimulationConfig(simulationConfig);
-
-  const simulationDatums = loadSimulationNodeDatums(data);
-  const simulation = buildSimulation({
-    ...simulationDatums,
-    ...simulationSettings,
+  const styleConfig = createStyles(style);
+  const simulation = new MindGraphSimulation({
+    ...data,
+    ...simulationConfig,
     width: styleConfig.width,
     height: styleConfig.height,
   });
@@ -49,7 +47,7 @@ export function draw({
   };
 
   window.addEventListener('resize', () => {
-    const { width, height, deviceScale } = getStyles(style);
+    const { width, height, deviceScale } = createStyles(style);
     visualCanvas.element.attr('width', width * deviceScale);
     visualCanvas.element.attr('height', height * deviceScale);
     visualCanvas.context?.scale(deviceScale, deviceScale);
@@ -132,4 +130,18 @@ export function draw({
       visualCanvas.element.style('cursor', 'default');
     }
   });
+
+  return {
+    focus: (id) => {
+      const node = simulationDatums.nodes.find((n) => n.id === id);
+      if (!node) return false;
+
+      console.log(zoomTransform);
+      console.log(node);
+      console.log({ width: window.innerWidth, height: window.innerHeight });
+      tick();
+
+      return true;
+    },
+  };
 }

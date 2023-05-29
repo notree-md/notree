@@ -33,8 +33,11 @@ export type GraphSimulationConfig = {
 
 export interface MindGraphConfig {
   data: GraphData;
-  canvasElement: HTMLCanvasElement;
   onNodeClick?: NodeClickCallback;
   style?: Partial<GraphStyleConfig>;
   simulationConfig?: Partial<GraphSimulationConfig>;
+}
+
+export interface MindGraphApi {
+  focus: (id: string) => boolean;
 }

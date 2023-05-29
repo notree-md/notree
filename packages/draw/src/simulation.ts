@@ -7,72 +7,91 @@ import {
   forceManyBody,
   forceCenter,
   forceLink,
+  Simulation as D3Simulation,
 } from 'd3-force';
+import { Styles } from './style';
 
-export function loadSimulationNodeDatums({ nodes, links }: GraphData) {
-  return {
-    nodes: map(nodes, merge_node_datum) as SimulationNode[],
-    links: map(links, merge_node_datum) as unknown as (SimulationNodeDatum & {
-      source: SimulationNode;
-      target: SimulationNode;
-    })[],
-  };
+export type ConfiguredSimulationLink = SimulationNodeDatum & {
+  source: SimulationNode;
+  target: SimulationNode;
+};
+
+export interface MindGraphSimulationArgs {
+  data: GraphData;
+  styles: Styles;
+  simulationConfig?: Partial<GraphSimulationConfig>;
 }
 
-export type BuildSimulationArgs = {
+export class Simulation {
+  public readonly configuration: GraphSimulationConfig;
+  public readonly nodes: SimulationNodeDatum[];
+  public readonly links: ConfiguredSimulationLink[];
+
+  constructor({
+    data: { nodes, links },
+    simulationConfig,
+    styles: { width, height },
+  }: MindGraphSimulationArgs) {
+    this.nodes = map(nodes, merge_node_datum);
+    this.links = map(
+      links,
+      merge_node_datum,
+    ) as unknown as ConfiguredSimulationLink[];
+    this.configuration = {
+      ...default_simulation_config,
+      ...simulationConfig,
+    };
+    this.simulation = this.build({ width, height });
+  }
+
+  private build({
+    width,
+    height,
+  }: BuildSimulationArgs): D3Simulation<SimulationNodeDatum, undefined> {
+    const {
+      initialClusterStrength,
+      chargeStrength,
+      linkStrength,
+      centerStrength,
+      alpha,
+      alphaDecay,
+    } = this.configuration;
+
+    // https://gist.github.com/mbostock/7881887
+    this.nodes.forEach((node, i) => {
+      node.x =
+        Math.cos((i / initialClusterStrength) * 2 * Math.PI) * 200 +
+        width / 2 +
+        Math.random();
+      node.y =
+        Math.sin((i / initialClusterStrength) * 2 * Math.PI) * 200 +
+        height / 2 +
+        Math.random();
+    });
+
+    return forceSimulation(this.nodes)
+      .force('charge', forceManyBody().strength(chargeStrength))
+      .force(
+        'center',
+        forceCenter(width / 2, height / 2).strength(centerStrength),
+      )
+      .force(
+        'link',
+        forceLink(this.links)
+          .id((l) => (l as SimulationNode).id)
+          .strength(linkStrength),
+      )
+      .alpha(alpha)
+      .alphaDecay(alphaDecay);
+  }
+
+  private simulation: D3Simulation<SimulationNodeDatum, undefined>;
+}
+
+type BuildSimulationArgs = {
   width: number;
   height: number;
-} & ReturnType<typeof loadSimulationNodeDatums> &
-  GraphSimulationConfig;
-
-export function buildSimulation({
-  nodes,
-  links,
-  width,
-  height,
-  chargeStrength,
-  centerStrength,
-  linkStrength,
-  alpha,
-  alphaDecay,
-  initialClusterStrength,
-}: BuildSimulationArgs) {
-  // https://gist.github.com/mbostock/7881887
-  nodes.forEach((node, i) => {
-    node.x =
-      Math.cos((i / initialClusterStrength) * 2 * Math.PI) * 200 +
-      width / 2 +
-      Math.random();
-    node.y =
-      Math.sin((i / initialClusterStrength) * 2 * Math.PI) * 200 +
-      height / 2 +
-      Math.random();
-  });
-
-  return forceSimulation(nodes)
-    .force('charge', forceManyBody().strength(chargeStrength))
-    .force(
-      'center',
-      forceCenter(width / 2, height / 2).strength(centerStrength),
-    )
-    .force(
-      'link',
-      forceLink(links)
-        .id((l) => (l as SimulationNode).id)
-        .strength(linkStrength),
-    )
-    .alpha(alpha)
-    .alphaDecay(alphaDecay);
-}
-
-export function getSimulationConfig(
-  simulationConfig: Partial<GraphSimulationConfig> | undefined,
-) {
-  return {
-    ...default_simulation_config,
-    ...simulationConfig,
-  };
-}
+};
 
 function merge_node_datum<TDatum extends Record<string, string | number>>(
   datum: TDatum,

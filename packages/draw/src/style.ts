@@ -1,6 +1,22 @@
 import { GraphStyleConfig } from './types';
 
-export function getStyles(styleConfig: Partial<GraphStyleConfig> | undefined) {
+export interface Styles {
+  width: number;
+  height: number;
+  deviceScale: number;
+  nodeColor: string;
+  activeNodeColor: string;
+  linkColor: string;
+  activeLinkColor: string;
+  titleColor: string;
+  nodeTitlePadding: number;
+  minimumNodeSize: number;
+  nodeScaleFactor: number;
+}
+
+export function createStyles(
+  styleConfig: Partial<GraphStyleConfig> | undefined,
+): Styles {
   const width = window.innerWidth;
   const height = window.innerHeight;
   const deviceScale = window.devicePixelRatio;
