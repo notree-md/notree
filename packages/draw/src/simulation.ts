@@ -24,7 +24,7 @@ export interface MindGraphSimulationArgs {
 
 export class Simulation {
   public readonly configuration: GraphSimulationConfig;
-  public readonly nodes: SimulationNodeDatum[];
+  public readonly nodes: SimulationNode[];
   public readonly links: ConfiguredSimulationLink[];
 
   constructor({
@@ -44,10 +44,16 @@ export class Simulation {
     this.simulation = this.build({ width, height });
   }
 
+  public on(event: 'tick', callback: () => void) {
+    this.simulation.on(event, callback);
+  }
+
+  private simulation: D3Simulation<SimulationNode, undefined>;
+
   private build({
     width,
     height,
-  }: BuildSimulationArgs): D3Simulation<SimulationNodeDatum, undefined> {
+  }: BuildSimulationArgs): D3Simulation<SimulationNode, undefined> {
     const {
       initialClusterStrength,
       chargeStrength,
@@ -84,8 +90,6 @@ export class Simulation {
       .alpha(alpha)
       .alphaDecay(alphaDecay);
   }
-
-  private simulation: D3Simulation<SimulationNodeDatum, undefined>;
 }
 
 type BuildSimulationArgs = {
