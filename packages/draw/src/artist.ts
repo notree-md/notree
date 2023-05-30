@@ -3,7 +3,7 @@ import { Canvas } from './canvas';
 import { Simulation } from './simulation';
 import { Styles, createStyles, generateUniqueColors } from './style';
 import { SvgElements } from './svg';
-import { MindGraphConfig, SimulationNode } from './types';
+import { EventListener, MindGraphConfig, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
 
 export class Artist {
@@ -17,37 +17,47 @@ export class Artist {
     });
     this.svg_elements = new SvgElements(this.simulation, this.styles);
 
-    this.zoom = new Zoomer();
-
-    this.click_map_canvas = new Canvas(this.styles);
     this.click_map_colors = generateUniqueColors(data.nodes.length);
+    this.click_map_canvas = new Canvas(this.styles);
     this.visual_canvas = undefined;
+
+    this.zoomer = new Zoomer();
+    this.event_listeners = [];
   }
 
   public draw(canvasElement: HTMLCanvasElement): void {
-    this.visual_canvas = new Canvas(this.styles, canvasElement);
+    this.visual_canvas = new Canvas(
+      this.styles,
+      canvasElement,
+      this.styles.deviceScale,
+    );
 
     this.add_window_resize_listener();
     this.add_zoom_listener();
     this.add_click_handler();
     this.add_mousemove_handler();
 
-    this.simulation.on('tick', this.tick);
+    this.simulation.on('tick', () => this.tick());
   }
 
+  public addEventListener(listener: EventListener) {
+    this.event_listeners.push(listener);
+  }
+
+  private visual_canvas: Canvas | undefined;
+  private activeNode: SimulationNode | undefined;
   private styles: Styles;
   private simulation: Simulation;
   private svg_elements: SvgElements;
-  private visual_canvas: Canvas | undefined;
   private click_map_canvas: Canvas;
   private click_map_colors: string[];
-  private zoom: Zoomer;
-  private activeNode: SimulationNode | undefined;
+  private zoomer: Zoomer;
+  private event_listeners: EventListener[];
 
   private tick(): void {
     this.svg_elements.nextFrame();
     this.visual_canvas?.drawFrame({
-      zoomer: this.zoom,
+      zoomer: this.zoomer,
       svgElements: this.svg_elements,
       styles: this.styles,
       activeNode: this.activeNode,
@@ -56,7 +66,9 @@ export class Artist {
 
   private add_window_resize_listener(): void {
     this.styles.windowObject.addEventListener('resize', () => {
-      const { width, height } = this.styles;
+      const { width, height } = createStyles({});
+      this.styles.width = width;
+      this.styles.height = height;
       this.visual_canvas?.setDimensions(width, height);
       this.tick();
     });
@@ -75,7 +87,7 @@ export class Artist {
           this.simulation.configuration.maxZoom,
         ])
         .on('zoom', (e: { transform: ZoomTransform }) => {
-          this.zoom.replace(e.transform);
+          this.zoomer.replace(e.transform);
 
           this.tick();
         }),
@@ -84,61 +96,50 @@ export class Artist {
 
   private add_click_handler(): void {
     this.visual_canvas?.on('click', ({ layerX, layerY }) => {
-      if (!this.click_map_canvas || typeof onNodeClick !== 'function') return;
+      if (!this.event_listeners.length) return;
 
-      const uniqueColorToNode = drawFrame({
-        canvas: clickMapCanvas,
-        style: styleConfig,
-        uniqueNodeColors: clickMapColors,
-        svgElements,
-        zoomTransform,
-        activeNode,
+      const uniqueColorToNode = this.click_map_canvas.drawFrame({
+        styles: this.styles,
+        uniqueNodeColors: this.click_map_colors,
+        svgElements: this.svg_elements,
+        zoomer: this.zoomer,
+        activeNode: this.activeNode,
       });
 
       const clickedNode =
-        uniqueColorToNode[
-          convertRgbArrayToStyle(
-            Array.from(
-              clickMapCanvas.context.getImageData(layerX, layerY, 1, 1).data,
-            ),
-          )
-        ];
+        uniqueColorToNode[this.click_map_canvas.getPixelColor(layerX, layerY)];
 
       if (clickedNode) {
-        onNodeClick(clickedNode);
+        this.event_listeners
+          .filter((e) => e.event === 'nodeClick')
+          .forEach((c) => c.callback(clickedNode));
       }
     });
   }
 
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
-      if (!clickMapCanvas.context) return;
-
-      const uniqueColorToNode = drawFrame({
-        canvas: clickMapCanvas,
-        style: styleConfig,
-        uniqueNodeColors: clickMapColors,
-        svgElements,
-        zoomTransform,
-        activeNode,
+      const uniqueColorToNode = this.click_map_canvas.drawFrame({
+        styles: this.styles,
+        uniqueNodeColors: this.click_map_colors,
+        svgElements: this.svg_elements,
+        zoomer: this.zoomer,
+        activeNode: this.activeNode,
       });
-      tick();
+
+      this.tick();
 
       const hoverNode =
         uniqueColorToNode[
-          convertRgbArrayToStyle(
-            Array.from(
-              clickMapCanvas.context.getImageData(offsetX, offsetY, 1, 1).data,
-            ),
-          )
+          this.click_map_canvas.getPixelColor(offsetX, offsetY)
         ];
 
       if (hoverNode) {
-        activeNode = hoverNode;
-        visualCanvas.element.style('cursor', 'pointer');
+        this.activeNode = hoverNode;
+        this.visual_canvas?.setCursor('pointer');
       } else {
-        activeNode = null;
-        visualCanvas.element.style('cursor', 'default');
+        this.activeNode = undefined;
+        this.visual_canvas?.setCursor('default');
       }
     });
   }

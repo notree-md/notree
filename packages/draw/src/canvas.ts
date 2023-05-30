@@ -1,5 +1,5 @@
 import { create, select, Selection } from 'd3-selection';
-import { Styles } from './style';
+import { convertRgbArrayToStyle, Styles } from './style';
 import { SvgElements } from './svg';
 import { NodeClickEvent, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
@@ -12,9 +12,10 @@ export class Canvas {
   ) {
     this.deviceScale = deviceScale;
     this.element = canvasElement ? select(canvasElement) : create('canvas');
-    this.setDimensions(width, height);
 
     this.context = this.element.node()?.getContext('2d') || undefined;
+
+    this.setDimensions(width, height);
   }
 
   public setDimensions(width: number, height: number): void {
@@ -40,7 +41,7 @@ export class Canvas {
     svgElements: SvgElements;
     styles: Styles;
     activeNode?: SimulationNode;
-    uniqueNodeColors?: string;
+    uniqueNodeColors?: string[];
   }): Record<string, SimulationNode> {
     if (!this.context) return {};
 
@@ -156,6 +157,18 @@ export class Canvas {
     ) => void,
   ): void {
     this.element.call(callback);
+  }
+
+  public getPixelColor(x: number, y: number): string {
+    if (!this.context) return '';
+
+    return convertRgbArrayToStyle(
+      Array.from(this.context.getImageData(x, y, 1, 1).data),
+    );
+  }
+
+  public setCursor(style: 'pointer' | 'default'): void {
+    this.element.style('cursor', style);
   }
 
   private element: Selection<HTMLCanvasElement, undefined, null, undefined>;
