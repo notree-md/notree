@@ -1,2 +1,2 @@
-export { type MindGraphConfig, type MindGraphApi } from './types';
-export { draw } from './draw';
+export { type MindGraphConfig } from './types';
+export { Artist } from './artist';

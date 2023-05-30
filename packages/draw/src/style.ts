@@ -12,14 +12,17 @@ export interface Styles {
   nodeTitlePadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
+  windowObject: Window & typeof globalThis;
 }
 
 export function createStyles(
   styleConfig: Partial<GraphStyleConfig> | undefined,
 ): Styles {
-  const width = window.innerWidth;
-  const height = window.innerHeight;
-  const deviceScale = window.devicePixelRatio;
+  const windowObject = styleConfig?.windowObject || window;
+
+  const width = windowObject.innerWidth;
+  const height = windowObject.innerHeight;
+  const deviceScale = windowObject.devicePixelRatio;
 
   return {
     ...default_styles,
@@ -55,4 +58,5 @@ const default_styles: GraphStyleConfig = {
   nodeTitlePadding: 12,
   nodeScaleFactor: 0.96,
   minimumNodeSize: 4,
+  windowObject: window,
 };
