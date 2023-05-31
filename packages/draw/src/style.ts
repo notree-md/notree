@@ -12,17 +12,18 @@ export interface Styles {
   nodeTitlePadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
-  windowObject: Window & typeof globalThis;
 }
 
 export function createStyles(
   styleConfig: Partial<GraphStyleConfig> | undefined,
 ): Styles {
-  const windowObject = styleConfig?.windowObject || window;
+  if (isSSR()) {
+    return { ...default_styles, width: 0, height: 0, deviceScale: 0 };
+  }
 
-  const width = windowObject.innerWidth;
-  const height = windowObject.innerHeight;
-  const deviceScale = windowObject.devicePixelRatio;
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const deviceScale = window.devicePixelRatio;
 
   return {
     ...default_styles,
@@ -49,6 +50,10 @@ export function convertRgbArrayToStyle(rgbArray: number[]) {
   return `rgb(${rgbArray.slice(0, 3).join(',')})`;
 }
 
+export function isSSR(): boolean {
+  return typeof window === 'undefined';
+}
+
 const default_styles: GraphStyleConfig = {
   nodeColor: 'red',
   activeNodeColor: 'white',
@@ -58,5 +63,4 @@ const default_styles: GraphStyleConfig = {
   nodeTitlePadding: 12,
   nodeScaleFactor: 0.96,
   minimumNodeSize: 4,
-  windowObject: window,
 };

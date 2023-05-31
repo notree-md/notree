@@ -20,7 +20,6 @@ export type GraphStyleConfig = {
   nodeTitlePadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
-  windowObject: Window & typeof globalThis;
 };
 
 export type GraphSimulationConfig = {

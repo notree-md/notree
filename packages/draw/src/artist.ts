@@ -1,7 +1,7 @@
 import { Canvas } from './canvas';
 import { Simulation } from './simulation';
 import { Zoomer } from './zoomer';
-import { Styles, createStyles, generateUniqueColors } from './style';
+import { Styles, createStyles, generateUniqueColors, isSSR } from './style';
 import {
   MindGraphConfig,
   MindGraphEvent,
@@ -78,13 +78,15 @@ export class Artist {
   }
 
   private add_window_resize_listener(): void {
-    this.styles.windowObject.addEventListener('resize', () => {
-      const { width, height } = createStyles({});
-      this.styles.width = width;
-      this.styles.height = height;
-      this.visual_canvas?.setDimensions(width, height);
-      this.tick();
-    });
+    if (!isSSR()) {
+      window.addEventListener('resize', () => {
+        const { width, height } = createStyles({});
+        this.styles.width = width;
+        this.styles.height = height;
+        this.visual_canvas?.setDimensions(width, height);
+        this.tick();
+      });
+    }
   }
 
   private add_zoom_listener(): void {

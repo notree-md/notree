@@ -1,5 +1,11 @@
 # @mindgraph/draw
 
+## 0.6.0
+
+### Minor Changes
+
+- fix crash in ssr
+
 ## 0.5.0
 
 ### Minor Changes
