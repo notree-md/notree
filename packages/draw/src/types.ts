@@ -39,7 +39,3 @@ export interface MindGraphConfig {
   style?: Partial<GraphStyleConfig>;
   simulationConfig?: Partial<GraphSimulationConfig>;
 }
-
-export interface MindGraphApi {
-  focus: (id: string) => boolean;
-}
