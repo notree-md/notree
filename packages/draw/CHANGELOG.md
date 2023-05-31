@@ -1,5 +1,11 @@
 # @mindgraph/draw
 
+## 0.6.1
+
+### Patch Changes
+
+- fix zoom issue
+
 ## 0.6.0
 
 ### Minor Changes

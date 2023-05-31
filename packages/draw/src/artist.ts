@@ -28,6 +28,8 @@ export class Artist {
   }
 
   public draw(canvasElement: HTMLCanvasElement): void {
+    if (isSSR()) return;
+
     this.visual_canvas = new Canvas(
       this.styles,
       canvasElement,
@@ -78,15 +80,15 @@ export class Artist {
   }
 
   private add_window_resize_listener(): void {
-    if (!isSSR()) {
-      window.addEventListener('resize', () => {
-        const { width, height } = createStyles({});
-        this.styles.width = width;
-        this.styles.height = height;
-        this.visual_canvas?.setDimensions(width, height);
-        this.tick();
-      });
-    }
+    if (isSSR()) return;
+
+    window.addEventListener('resize', () => {
+      const { width, height } = createStyles({});
+      this.styles.width = width;
+      this.styles.height = height;
+      this.visual_canvas?.setDimensions(width, height);
+      this.tick();
+    });
   }
 
   private add_zoom_listener(): void {
@@ -96,7 +98,7 @@ export class Artist {
         height: this.styles.height,
         minZoom: this.simulation.configuration.minZoom,
         maxZoom: this.simulation.configuration.maxZoom,
-        observers: [this.tick],
+        observers: [() => this.tick()],
       }),
     );
   }
