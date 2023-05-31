@@ -1,133 +1,174 @@
-import { create, select } from 'd3-selection';
-import { ZoomTransform } from 'd3-zoom';
-import { getStyles } from './style';
-import { loadSvgElements } from './svg';
-import { SimulationNode } from './types';
+import { create, select, Selection } from 'd3-selection';
+import { convertRgbArrayToStyle, Styles } from './style';
+import { NodeClickEvent, SimulationNode } from './types';
+import { Zoomer } from './zoomer';
+import { Simulation } from './simulation';
 
-export function loadCanvas(
-  { width, height, deviceScale }: ReturnType<typeof getStyles>,
-  scaledToDevice: boolean,
-  canvasElement?: HTMLCanvasElement,
-) {
-  const element = canvasElement ? select(canvasElement) : create('canvas');
+export class Canvas {
+  constructor(
+    { width, height }: Styles,
+    canvasElement?: HTMLCanvasElement,
+    deviceScale?: number,
+  ) {
+    this.deviceScale = deviceScale;
+    this.element = canvasElement ? select(canvasElement) : create('canvas');
 
-  const appliedWidth = scaledToDevice ? width * deviceScale : width;
-  const appliedHeight = scaledToDevice ? height * deviceScale : height;
+    this.context = this.element.node()?.getContext('2d') || undefined;
 
-  element.attr('width', appliedWidth);
-  element.attr('height', appliedHeight);
-
-  const context = element.node()?.getContext('2d');
-
-  if (scaledToDevice) {
-    context?.scale(deviceScale, deviceScale);
+    this.setDimensions(width, height);
   }
 
-  return { element, context };
-}
+  public setDimensions(width: number, height: number): void {
+    const appliedWidth = this.deviceScale ? width * this.deviceScale : width;
+    const appliedHeight = this.deviceScale ? height * this.deviceScale : height;
 
-export interface DrawFrameArgs {
-  canvas: ReturnType<typeof loadCanvas>;
-  svgElements: ReturnType<typeof loadSvgElements>;
-  style: ReturnType<typeof getStyles>;
-  zoomTransform: ZoomTransform;
-  uniqueNodeColors?: string[];
-  activeNode: SimulationNode | null;
-}
+    this.element.attr('width', appliedWidth);
+    this.element.attr('height', appliedHeight);
 
-export function drawFrame({
-  canvas: { element, context },
-  svgElements: { nodeObjects, linkObjects },
-  uniqueNodeColors,
-  zoomTransform,
-  style,
-  activeNode,
-}: DrawFrameArgs) {
-  if (!context) return {};
-
-  context.save();
-
-  context.clearRect(
-    0,
-    0,
-    Number(element.attr('width')),
-    Number(element.attr('height')),
-  );
-  context.translate(zoomTransform.x, zoomTransform.y);
-  context.scale(zoomTransform.k, zoomTransform.k);
-
-  linkObjects.each(function (link) {
-    if (link.source.x && link.source.y && link.target.x && link.target.y) {
-      context.beginPath();
-
-      if (
-        activeNode &&
-        (link.source.id === activeNode.id || link.target.id === activeNode.id)
-      ) {
-        context.strokeStyle = style.activeLinkColor;
-      } else {
-        context.strokeStyle = style.linkColor;
-      }
-
-      context.moveTo(link.source.x, link.source.y);
-      context.lineTo(link.target.x, link.target.y);
-
-      context.stroke();
-      context.closePath();
+    if (this.deviceScale) {
+      this.context?.scale(this.deviceScale, this.deviceScale);
     }
-  });
+  }
 
-  const mapColorToNode = !!uniqueNodeColors;
-  const nodeColorMap: Record<string, SimulationNode> = {};
-  nodeObjects.each(function (n, i) {
-    if (n.x && n.y) {
-      const isActiveNode = activeNode && n.id === activeNode.id;
-      const initialRadius = Number(select(this).attr('r'));
-      const radius = mapColorToNode ? initialRadius + 3 : initialRadius;
-      const nodeFill = mapColorToNode ? uniqueNodeColors[i] : style.nodeColor;
+  public drawFrame({
+    zoomer,
+    simulation,
+    styles,
+    activeNode,
+    uniqueNodeColors,
+  }: {
+    zoomer: Zoomer;
+    simulation: Simulation;
+    styles: Styles;
+    activeNode?: SimulationNode;
+    uniqueNodeColors?: string[];
+  }): Record<string, SimulationNode> {
+    if (!this.context) return {};
 
-      context.beginPath();
+    this.context.save();
 
-      if (isActiveNode) {
-        context.fillStyle = mapColorToNode ? nodeFill : style.activeNodeColor;
-        context.arc(n.x, n.y, radius + 1, 0, Math.PI * 2);
-      } else {
-        context.fillStyle = nodeFill;
-        context.arc(n.x, n.y, radius, 0, Math.PI * 2);
+    this.context.clearRect(
+      0,
+      0,
+      Number(this.element.attr('width')),
+      Number(this.element.attr('height')),
+    );
+    this.context.translate(zoomer.x, zoomer.y);
+    this.context.scale(zoomer.k, zoomer.k);
+
+    simulation.renderedLinks().each((link) => {
+      if (!this.context) return;
+      if (link.source.x && link.source.y && link.target.x && link.target.y) {
+        this.context.beginPath();
+
+        if (
+          activeNode &&
+          (link.source.id === activeNode.id || link.target.id === activeNode.id)
+        ) {
+          this.context.strokeStyle = styles.activeLinkColor;
+        } else {
+          this.context.strokeStyle = styles.linkColor;
+        }
+
+        this.context.moveTo(link.source.x, link.source.y);
+        this.context.lineTo(link.target.x, link.target.y);
+
+        this.context.stroke();
+        this.context.closePath();
       }
+    });
 
-      context.fill();
-      context.closePath();
+    const mapColorToNode = !!uniqueNodeColors;
+    const nodeColorMap: Record<string, SimulationNode> = {};
 
-      const name = n.name.split('.md')[0];
+    simulation.renderedNodes().forEach((n, i) => {
+      if (!this.context) return;
 
-      context.beginPath();
-      context.fillStyle = style.titleColor;
+      if (n.x && n.y) {
+        const isActiveNode = activeNode && n.id === activeNode.id;
 
-      if (isActiveNode) {
-        context.fillText(
-          name,
-          n.x - context.measureText(name).width / 2,
-          n.y + radius + style.nodeTitlePadding + 2,
-        );
-      } else {
-        context.fillText(
-          name,
-          n.x - context.measureText(name).width / 2,
-          n.y + radius + style.nodeTitlePadding,
-        );
+        // increase clickable area of node
+        const radius = mapColorToNode ? n.r + 3 : n.r;
+
+        const nodeFill = mapColorToNode
+          ? uniqueNodeColors[i]
+          : styles.nodeColor;
+
+        this.context.beginPath();
+
+        if (isActiveNode) {
+          this.context.fillStyle = mapColorToNode
+            ? nodeFill
+            : styles.activeNodeColor;
+          this.context.arc(n.x, n.y, radius + 1, 0, Math.PI * 2);
+        } else {
+          this.context.fillStyle = nodeFill;
+          this.context.arc(n.x, n.y, radius, 0, Math.PI * 2);
+        }
+
+        this.context.fill();
+        this.context.closePath();
+
+        const name = n.name.split('.md')[0];
+
+        this.context.beginPath();
+        this.context.fillStyle = styles.titleColor;
+
+        if (isActiveNode) {
+          this.context.fillText(
+            name,
+            n.x - this.context.measureText(name).width / 2,
+            n.y + radius + styles.nodeTitlePadding + 2,
+          );
+        } else {
+          this.context.fillText(
+            name,
+            n.x - this.context.measureText(name).width / 2,
+            n.y + radius + styles.nodeTitlePadding,
+          );
+        }
+
+        this.context.fill();
+        this.context.closePath();
+
+        if (mapColorToNode) {
+          nodeColorMap[nodeFill] = n;
+        }
       }
+    });
 
-      context.fill();
-      context.closePath();
+    this.context.restore();
 
-      if (mapColorToNode) {
-        nodeColorMap[nodeFill] = n;
-      }
-    }
-  });
+    return nodeColorMap;
+  }
 
-  context.restore();
+  public on(event: 'click', callback: (args: NodeClickEvent) => void): void;
+  public on(event: 'mousemove', callback: (args: MouseEvent) => void): void;
+  public on(event: never, callback: never): void {
+    this.element.on(event, callback);
+  }
 
-  return nodeColorMap;
+  public call(
+    callback: (
+      selection: Selection<HTMLCanvasElement, undefined, null, undefined>,
+    ) => void,
+  ): void {
+    this.element.call(callback);
+  }
+
+  public getPixelColor(x: number, y: number): string {
+    if (!this.context) return '';
+
+    return convertRgbArrayToStyle(
+      Array.from(this.context.getImageData(x, y, 1, 1).data),
+    );
+  }
+
+  public setCursor(style: 'pointer' | 'default'): void {
+    this.element.style('cursor', style);
+  }
+
+  private element: Selection<HTMLCanvasElement, undefined, null, undefined>;
+  private context: CanvasRenderingContext2D | undefined;
+  private deviceScale: number | undefined;
 }

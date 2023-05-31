@@ -27,14 +27,13 @@ app.get('/api/v1/notes', async (res) => {
 });
 
 // On the client
-import { draw } from '@mindgraph/draw';
+import { Artist } from '@mindgraph/draw';
 
 const notes = await fetch('/api/v1/notes').then((res) => res.json());
 const canvas = document.getElementById('your-canvas');
 
-draw({
-  data: notes,
-});
+const artist = new Artist({ data: notes });
+artist.draw(canvas);
 ```
 
 ## Contributing

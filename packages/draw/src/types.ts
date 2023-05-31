@@ -7,6 +7,8 @@ export type NodeClickCallback<TReturn = void> = (
   node: SimulationNode,
 ) => TReturn;
 
+export type MindGraphEvent = 'nodeClick';
+
 export type NodeClickEvent = { layerX: number; layerY: number };
 
 export type GraphStyleConfig = {
@@ -18,6 +20,7 @@ export type GraphStyleConfig = {
   nodeTitlePadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
+  windowObject: Window & typeof globalThis;
 };
 
 export type GraphSimulationConfig = {
@@ -33,8 +36,6 @@ export type GraphSimulationConfig = {
 
 export interface MindGraphConfig {
   data: GraphData;
-  canvasElement: HTMLCanvasElement;
-  onNodeClick?: NodeClickCallback;
   style?: Partial<GraphStyleConfig>;
   simulationConfig?: Partial<GraphSimulationConfig>;
 }

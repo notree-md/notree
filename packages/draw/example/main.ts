@@ -1,4 +1,5 @@
-import { draw } from '../src/index';
+import { GraphData } from '@mindgraph/types';
+import { Artist } from '../src/index';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const body = document.getElementById('app') as HTMLCanvasElement;
@@ -9,19 +10,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const data = await fetch('/api/notes').then((response) => response.json());
-    draw({
+    const data: GraphData = await fetch('/api/notes').then((response) =>
+      response.json(),
+    );
+
+    const artist = new Artist({
       data,
-      canvasElement: body,
       style: {
         nodeColor: '#01b0d3',
         linkColor: '#01586a',
         titleColor: '#ffffff',
       },
-      onNodeClick: (node) => {
-        alert(node.id);
-      },
     });
+
+    artist.addEventListener('nodeClick', (node) => {
+      alert(node.id);
+    });
+
+    artist.draw(body);
   } catch (error) {
     alert(error);
   }
