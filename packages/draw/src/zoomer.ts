@@ -16,7 +16,7 @@ export class Zoomer {
   public configureZoomArea<TArea extends Element>(
     config: ZoomAreaConfiguration,
   ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- second generic on zoom seems broken
     return zoom<TArea, any>()
       .extent([
         [0, 0],
