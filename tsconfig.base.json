@@ -12,7 +12,6 @@
     "useDefineForClassFields": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
-    "noUnusedLocals": true
+    "esModuleInterop": true
   }
 }

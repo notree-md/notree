@@ -7,7 +7,7 @@ export type NodeClickCallback<TReturn = void> = (
   node: SimulationNode,
 ) => TReturn;
 
-export type EventListener = { event: 'nodeClick'; callback: NodeClickCallback };
+export type MindGraphEvent = 'nodeClick';
 
 export type NodeClickEvent = { layerX: number; layerY: number };
 

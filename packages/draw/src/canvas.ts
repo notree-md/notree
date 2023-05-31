@@ -1,8 +1,8 @@
 import { create, select, Selection } from 'd3-selection';
 import { convertRgbArrayToStyle, Styles } from './style';
-import { SvgElements } from './svg';
 import { NodeClickEvent, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
+import { Simulation } from './simulation';
 
 export class Canvas {
   constructor(
@@ -32,13 +32,13 @@ export class Canvas {
 
   public drawFrame({
     zoomer,
-    svgElements,
+    simulation,
     styles,
     activeNode,
     uniqueNodeColors,
   }: {
     zoomer: Zoomer;
-    svgElements: SvgElements;
+    simulation: Simulation;
     styles: Styles;
     activeNode?: SimulationNode;
     uniqueNodeColors?: string[];
@@ -56,7 +56,7 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    svgElements.links.each((link) => {
+    simulation.renderedLinks().each((link) => {
       if (!this.context) return;
       if (link.source.x && link.source.y && link.target.x && link.target.y) {
         this.context.beginPath();
@@ -81,57 +81,55 @@ export class Canvas {
     const mapColorToNode = !!uniqueNodeColors;
     const nodeColorMap: Record<string, SimulationNode> = {};
 
-    // TODO: figure out how to remove `select(this)`
-    // from the nodes iteration callback and still have access to the `BaseType`
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const current = this;
+    simulation.renderedNodes().forEach((n, i) => {
+      if (!this.context) return;
 
-    svgElements.nodes.each(function (n, i) {
-      if (!current.context) return;
       if (n.x && n.y) {
         const isActiveNode = activeNode && n.id === activeNode.id;
-        const initialRadius = Number(select(this).attr('r'));
-        const radius = mapColorToNode ? initialRadius + 3 : initialRadius;
+
+        // increase clickable area of node
+        const radius = mapColorToNode ? n.r + 3 : n.r;
+
         const nodeFill = mapColorToNode
           ? uniqueNodeColors[i]
           : styles.nodeColor;
 
-        current.context.beginPath();
+        this.context.beginPath();
 
         if (isActiveNode) {
-          current.context.fillStyle = mapColorToNode
+          this.context.fillStyle = mapColorToNode
             ? nodeFill
             : styles.activeNodeColor;
-          current.context.arc(n.x, n.y, radius + 1, 0, Math.PI * 2);
+          this.context.arc(n.x, n.y, radius + 1, 0, Math.PI * 2);
         } else {
-          current.context.fillStyle = nodeFill;
-          current.context.arc(n.x, n.y, radius, 0, Math.PI * 2);
+          this.context.fillStyle = nodeFill;
+          this.context.arc(n.x, n.y, radius, 0, Math.PI * 2);
         }
 
-        current.context.fill();
-        current.context.closePath();
+        this.context.fill();
+        this.context.closePath();
 
         const name = n.name.split('.md')[0];
 
-        current.context.beginPath();
-        current.context.fillStyle = styles.titleColor;
+        this.context.beginPath();
+        this.context.fillStyle = styles.titleColor;
 
         if (isActiveNode) {
-          current.context.fillText(
+          this.context.fillText(
             name,
-            n.x - current.context.measureText(name).width / 2,
+            n.x - this.context.measureText(name).width / 2,
             n.y + radius + styles.nodeTitlePadding + 2,
           );
         } else {
-          current.context.fillText(
+          this.context.fillText(
             name,
-            n.x - current.context.measureText(name).width / 2,
+            n.x - this.context.measureText(name).width / 2,
             n.y + radius + styles.nodeTitlePadding,
           );
         }
 
-        current.context.fill();
-        current.context.closePath();
+        this.context.fill();
+        this.context.closePath();
 
         if (mapColorToNode) {
           nodeColorMap[nodeFill] = n;

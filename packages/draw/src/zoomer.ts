@@ -1,12 +1,32 @@
-import { ZoomTransform, zoomIdentity } from 'd3-zoom';
+import { ZoomTransform, zoom, zoomIdentity } from 'd3-zoom';
+
+export interface ZoomAreaConfiguration {
+  width: number;
+  height: number;
+  minZoom: number;
+  maxZoom: number;
+  observers?: (() => void)[];
+}
 
 export class Zoomer {
   constructor() {
     this.zoom_transform = zoomIdentity;
   }
 
-  public replace(zoomTransform: ZoomTransform) {
-    this.zoom_transform = zoomTransform;
+  public configureZoomArea<TArea extends Element>(
+    config: ZoomAreaConfiguration,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return zoom<TArea, any>()
+      .extent([
+        [0, 0],
+        [config.width, config.height],
+      ])
+      .scaleExtent([config.minZoom, config.maxZoom])
+      .on('zoom', (e: { transform: ZoomTransform }) => {
+        this.zoom_transform = e.transform;
+        config.observers?.forEach((f) => f());
+      });
   }
 
   public get x() {

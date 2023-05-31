@@ -1,7 +1,7 @@
 import { create, Selection, BaseType } from 'd3-selection';
 import { ConfiguredSimulationLink, Simulation } from './simulation';
-import { SimulationNode } from './types';
-import { Styles } from './style';
+import { SimulationNode } from '../types';
+import { Styles } from '../style';
 
 export class SvgElements {
   public readonly links: Selection<

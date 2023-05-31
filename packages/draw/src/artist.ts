@@ -1,10 +1,13 @@
-import { ZoomTransform, zoom } from 'd3-zoom';
 import { Canvas } from './canvas';
 import { Simulation } from './simulation';
-import { Styles, createStyles, generateUniqueColors } from './style';
-import { SvgElements } from './svg';
-import { EventListener, MindGraphConfig, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
+import { Styles, createStyles, generateUniqueColors } from './style';
+import {
+  MindGraphConfig,
+  MindGraphEvent,
+  NodeClickCallback,
+  SimulationNode,
+} from './types';
 
 export class Artist {
   constructor({ data, style, simulationConfig }: MindGraphConfig) {
@@ -15,7 +18,6 @@ export class Artist {
       simulationConfig,
       styles: this.styles,
     });
-    this.svg_elements = new SvgElements(this.simulation, this.styles);
 
     this.click_map_colors = generateUniqueColors(data.nodes.length);
     this.click_map_canvas = new Canvas(this.styles);
@@ -37,28 +39,35 @@ export class Artist {
     this.add_click_handler();
     this.add_mousemove_handler();
 
-    this.simulation.on('tick', () => this.tick());
+    this.simulation.start([() => this.tick()]);
   }
 
-  public addEventListener(listener: EventListener) {
-    this.event_listeners.push(listener);
+  public addEventListener(event: MindGraphEvent, callback: NodeClickCallback) {
+    const id =
+      (this.event_listeners[this.event_listeners.length - 1]?.id || 0) + 1;
+
+    this.event_listeners.push({ id, event, callback });
+
+    return id;
   }
 
   private visual_canvas: Canvas | undefined;
   private activeNode: SimulationNode | undefined;
   private styles: Styles;
   private simulation: Simulation;
-  private svg_elements: SvgElements;
   private click_map_canvas: Canvas;
   private click_map_colors: string[];
   private zoomer: Zoomer;
-  private event_listeners: EventListener[];
+  private event_listeners: {
+    id: number;
+    event: MindGraphEvent;
+    callback: NodeClickCallback;
+  }[];
 
   private tick(): void {
-    this.svg_elements.nextFrame();
     this.visual_canvas?.drawFrame({
+      simulation: this.simulation,
       zoomer: this.zoomer,
-      svgElements: this.svg_elements,
       styles: this.styles,
       activeNode: this.activeNode,
     });
@@ -76,21 +85,13 @@ export class Artist {
 
   private add_zoom_listener(): void {
     this.visual_canvas?.call(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      zoom<HTMLCanvasElement, any>()
-        .extent([
-          [0, 0],
-          [this.styles.width, this.styles.height],
-        ])
-        .scaleExtent([
-          this.simulation.configuration.minZoom,
-          this.simulation.configuration.maxZoom,
-        ])
-        .on('zoom', (e: { transform: ZoomTransform }) => {
-          this.zoomer.replace(e.transform);
-
-          this.tick();
-        }),
+      this.zoomer.configureZoomArea<HTMLCanvasElement>({
+        width: this.styles.width,
+        height: this.styles.height,
+        minZoom: this.simulation.configuration.minZoom,
+        maxZoom: this.simulation.configuration.maxZoom,
+        observers: [this.tick],
+      }),
     );
   }
 
@@ -101,7 +102,7 @@ export class Artist {
       const uniqueColorToNode = this.click_map_canvas.drawFrame({
         styles: this.styles,
         uniqueNodeColors: this.click_map_colors,
-        svgElements: this.svg_elements,
+        simulation: this.simulation,
         zoomer: this.zoomer,
         activeNode: this.activeNode,
       });
@@ -122,7 +123,7 @@ export class Artist {
       const uniqueColorToNode = this.click_map_canvas.drawFrame({
         styles: this.styles,
         uniqueNodeColors: this.click_map_colors,
-        svgElements: this.svg_elements,
+        simulation: this.simulation,
         zoomer: this.zoomer,
         activeNode: this.activeNode,
       });

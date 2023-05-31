@@ -1,3 +1,4 @@
+import { GraphData } from '@mindgraph/types';
 import { Artist } from '../src/index';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -9,7 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const data = await fetch('/api/notes').then((response) => response.json());
+    const data: GraphData = await fetch('/api/notes').then((response) =>
+      response.json(),
+    );
 
     const artist = new Artist({
       data,
@@ -20,11 +23,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       },
     });
 
-    artist.addEventListener({
-      event: 'nodeClick',
-      callback: (node) => {
-        alert(node.id);
-      },
+    artist.addEventListener('nodeClick', (node) => {
+      alert(node.id);
     });
 
     artist.draw(body);
