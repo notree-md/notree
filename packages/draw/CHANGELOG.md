@@ -1,5 +1,13 @@
 # @mindgraph/draw
 
+## 0.5.0
+
+### Minor Changes
+
+- 1917b9f: breaking: convert to class based api
+- 83da1ab: fix bug where resizing the window made the graph spread out or shrink
+- 2d7adef: Update dependencies
+
 ## 0.4.0
 
 ### Minor Changes
