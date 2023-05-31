@@ -144,8 +144,7 @@ export class Canvas {
 
   public on(event: 'click', callback: (args: NodeClickEvent) => void): void;
   public on(event: 'mousemove', callback: (args: MouseEvent) => void): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public on(event: any, callback: any): void {
+  public on(event: never, callback: never): void {
     this.element.on(event, callback);
   }
 

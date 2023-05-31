@@ -42,7 +42,11 @@ export class Artist {
     this.simulation.start([() => this.tick()]);
   }
 
-  public addEventListener(event: MindGraphEvent, callback: NodeClickCallback) {
+  public addEventListener(
+    event: 'nodeClick',
+    callback: NodeClickCallback,
+  ): number;
+  public addEventListener(event: MindGraphEvent, callback: never): number {
     const id =
       (this.event_listeners[this.event_listeners.length - 1]?.id || 0) + 1;
 
