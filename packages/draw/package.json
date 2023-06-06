@@ -35,6 +35,8 @@
   },
   "dependencies": {
     "@mindgraph/types": "workspace:*",
+    "cypress": "^12.13.0",
+    "cypress-visual-regression": "^3.0.0",
     "d3-array": "^3.2.3",
     "d3-force": "^3.0.0",
     "d3-selection": "^3.0.0",
