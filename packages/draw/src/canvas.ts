@@ -56,7 +56,7 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    simulation.renderedLinks().each((link) => {
+    simulation.links.forEach((link) => {
       if (!this.context) return;
       if (link.source.x && link.source.y && link.target.x && link.target.y) {
         this.context.beginPath();
@@ -81,14 +81,15 @@ export class Canvas {
     const mapColorToNode = !!uniqueNodeColors;
     const nodeColorMap: Record<string, SimulationNode> = {};
 
-    simulation.renderedNodes().forEach((n, i) => {
+    simulation.nodes.forEach((n, i) => {
       if (!this.context) return;
 
       if (n.x && n.y) {
         const isActiveNode = activeNode && n.id === activeNode.id;
 
         // increase clickable area of node
-        const radius = mapColorToNode ? n.r + 3 : n.r;
+        const r = styles.minimumNodeSize + (n.linkCount || 1) ** styles.nodeScaleFactor;
+        const radius = mapColorToNode ? r + 3 : r;
 
         const nodeFill = mapColorToNode
           ? uniqueNodeColors[i]

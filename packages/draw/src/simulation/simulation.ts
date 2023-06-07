@@ -10,8 +10,6 @@ import {
   Simulation as D3Simulation,
 } from 'd3-force';
 import { Styles } from '../style';
-import { SvgElements } from './svg';
-import { select } from 'd3-selection';
 
 export type ConfiguredSimulationLink = SimulationNodeDatum & {
   source: SimulationNode;
@@ -47,33 +45,15 @@ export class Simulation {
       width: styles.width,
       height: styles.height,
     });
-    this.inMemoryRendering = new SvgElements(this, styles);
   }
 
   public start(observers?: (() => void)[]): void {
     this.simulation.on('tick', () => {
-      this.inMemoryRendering.nextFrame();
       observers?.forEach((f) => f());
     });
   }
 
-  public renderedLinks() {
-    return this.inMemoryRendering.links;
-  }
-
-  public renderedNodes() {
-    const nodes: (SimulationNode & { r: number })[] = [];
-
-    // TODO: can you get the radius without this?
-    this.inMemoryRendering.nodes.each(function (n) {
-      nodes.push({ ...n, r: Number(select(this).attr('r')) });
-    });
-
-    return nodes;
-  }
-
   private simulation: D3Simulation<SimulationNode, undefined>;
-  private inMemoryRendering: SvgElements;
 
   private build({
     width,
