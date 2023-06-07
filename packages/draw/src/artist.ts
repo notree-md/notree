@@ -10,14 +10,20 @@ import {
 } from './types';
 
 export class Artist {
-  constructor({ data, style, simulationConfig }: MindGraphConfig) {
-    this.styles = createStyles(style);
+
+  constructor({ data, style, simulationConfig, canvas }: MindGraphConfig) {
+    this.canvasElement = canvas;
+    this.canvasInitialWidth = canvas.getBoundingClientRect().width;
+    this.canvasInitialHeight = canvas.getBoundingClientRect().height;
+
+    this.styles = createStyles(style, this.canvasInitialWidth, this.canvasInitialHeight);
 
     this.simulation = new Simulation({
       data,
       simulationConfig,
       styles: this.styles,
     });
+
 
     this.click_map_colors = generateUniqueColors(data.nodes.length);
     this.click_map_canvas = new Canvas(this.styles);
@@ -27,12 +33,12 @@ export class Artist {
     this.event_listeners = [];
   }
 
-  public draw(canvasElement: HTMLCanvasElement): void {
+  public draw(): void {
     if (isSSR()) return;
 
     this.visual_canvas = new Canvas(
       this.styles,
-      canvasElement,
+      this.canvasElement,
       this.styles.deviceScale,
     );
 
@@ -57,6 +63,10 @@ export class Artist {
     return id;
   }
 
+
+  private canvasInitialWidth: number;
+  private canvasInitialHeight: number;
+  private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
   private activeNode: SimulationNode | undefined;
   private styles: Styles;
@@ -83,10 +93,7 @@ export class Artist {
     if (isSSR()) return;
 
     window.addEventListener('resize', () => {
-      const { width, height } = createStyles({});
-      this.styles.width = width;
-      this.styles.height = height;
-      this.visual_canvas?.setDimensions(width, height);
+      this.visual_canvas?.setDimensions();
       this.tick();
     });
   }

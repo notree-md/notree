@@ -31,10 +31,12 @@ export type GraphSimulationConfig = {
   alpha: number;
   alphaDecay: number;
   initialClusterStrength: number;
+  randomizeStartingPoints?: boolean;
 };
 
 export interface MindGraphConfig {
   data: GraphData;
   style?: Partial<GraphStyleConfig>;
   simulationConfig?: Partial<GraphSimulationConfig>;
+  canvas: HTMLCanvasElement;
 }
