@@ -109,13 +109,15 @@ export class Canvas {
 
   public drawFrame({
     zoomer,
-    simulation,
+    nodes,
+    links,
     styles,
     activeNode,
     uniqueNodeColors,
   }: {
     zoomer: Zoomer;
-    simulation: Simulation;
+    nodes: SimulationNode[],
+    links: ConfiguredSimulationLink[],
     styles: Styles;
     activeNode?: SimulationNode;
     uniqueNodeColors?: string[];
@@ -133,10 +135,10 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    simulation.links.forEach((link) => this.drawLink(link, styles, activeNode));
+    links.forEach((link) => this.drawLink(link, styles, activeNode));
 
     const nodeColorMap: Record<string, SimulationNode> = {};
-    simulation.nodes.forEach((n, i) => {
+    nodes.forEach((n, i) => {
       const mapColorToNode = !!uniqueNodeColors;
       const nodeFill = mapColorToNode ? uniqueNodeColors[i] : styles.nodeColor;
       this.drawNode(n, styles, mapColorToNode, nodeFill, nodeColorMap, activeNode)

@@ -72,7 +72,8 @@ export class Artist {
 
   private tick(): void {
     this.visual_canvas?.drawFrame({
-      simulation: this.simulation,
+      nodes: this.simulation.nodes,
+      links: this.simulation.links,
       zoomer: this.zoomer,
       styles: this.styles,
       activeNode: this.activeNode,
@@ -110,7 +111,8 @@ export class Artist {
       const uniqueColorToNode = this.click_map_canvas.drawFrame({
         styles: this.styles,
         uniqueNodeColors: this.click_map_colors,
-        simulation: this.simulation,
+        nodes: this.simulation.nodes,
+        links: this.simulation.links,
         zoomer: this.zoomer,
         activeNode: this.activeNode,
       });
@@ -131,7 +133,8 @@ export class Artist {
       const uniqueColorToNode = this.click_map_canvas.drawFrame({
         styles: this.styles,
         uniqueNodeColors: this.click_map_colors,
-        simulation: this.simulation,
+        nodes: this.simulation.nodes,
+        links: this.simulation.links,
         zoomer: this.zoomer,
         activeNode: this.activeNode,
       });
