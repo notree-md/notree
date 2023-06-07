@@ -3,6 +3,7 @@ import { convertRgbArrayToStyle, Styles } from './style';
 import { NodeClickEvent, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
 import { Simulation } from './simulation';
+import { ConfiguredSimulationLink } from './simulation/simulation';
 
 export class Canvas {
   constructor(
@@ -30,33 +31,7 @@ export class Canvas {
     }
   }
 
-  public drawFrame({
-    zoomer,
-    simulation,
-    styles,
-    activeNode,
-    uniqueNodeColors,
-  }: {
-    zoomer: Zoomer;
-    simulation: Simulation;
-    styles: Styles;
-    activeNode?: SimulationNode;
-    uniqueNodeColors?: string[];
-  }): Record<string, SimulationNode> {
-    if (!this.context) return {};
-
-    this.context.save();
-
-    this.context.clearRect(
-      0,
-      0,
-      Number(this.element.attr('width')),
-      Number(this.element.attr('height')),
-    );
-    this.context.translate(zoomer.x, zoomer.y);
-    this.context.scale(zoomer.k, zoomer.k);
-
-    simulation.links.forEach((link) => {
+  private drawLink(link: ConfiguredSimulationLink, styles: Styles, activeNode?: SimulationNode) {
       if (!this.context) return;
       if (link.source.x && link.source.y && link.target.x && link.target.y) {
         this.context.beginPath();
@@ -76,12 +51,9 @@ export class Canvas {
         this.context.stroke();
         this.context.closePath();
       }
-    });
+  }
 
-    const mapColorToNode = !!uniqueNodeColors;
-    const nodeColorMap: Record<string, SimulationNode> = {};
-
-    simulation.nodes.forEach((n, i) => {
+  private drawNode(n: SimulationNode, styles: Styles, mapColorToNode: boolean, nodeFill: string, nodeColorMap: Record<string, SimulationNode>, activeNode?: SimulationNode) {
       if (!this.context) return;
 
       if (n.x && n.y) {
@@ -90,10 +62,6 @@ export class Canvas {
         // increase clickable area of node
         const r = styles.minimumNodeSize + (n.linkCount || 1) ** styles.nodeScaleFactor;
         const radius = mapColorToNode ? r + 3 : r;
-
-        const nodeFill = mapColorToNode
-          ? uniqueNodeColors[i]
-          : styles.nodeColor;
 
         this.context.beginPath();
 
@@ -136,6 +104,42 @@ export class Canvas {
           nodeColorMap[nodeFill] = n;
         }
       }
+
+  }
+
+  public drawFrame({
+    zoomer,
+    simulation,
+    styles,
+    activeNode,
+    uniqueNodeColors,
+  }: {
+    zoomer: Zoomer;
+    simulation: Simulation;
+    styles: Styles;
+    activeNode?: SimulationNode;
+    uniqueNodeColors?: string[];
+  }): Record<string, SimulationNode> {
+    if (!this.context) return {};
+
+    this.context.save();
+
+    this.context.clearRect(
+      0,
+      0,
+      Number(this.element.attr('width')),
+      Number(this.element.attr('height')),
+    );
+    this.context.translate(zoomer.x, zoomer.y);
+    this.context.scale(zoomer.k, zoomer.k);
+
+    simulation.links.forEach((link) => this.drawLink(link, styles, activeNode));
+
+    const nodeColorMap: Record<string, SimulationNode> = {};
+    simulation.nodes.forEach((n, i) => {
+      const mapColorToNode = !!uniqueNodeColors;
+      const nodeFill = mapColorToNode ? uniqueNodeColors[i] : styles.nodeColor;
+      this.drawNode(n, styles, mapColorToNode, nodeFill, nodeColorMap, activeNode)
     });
 
     this.context.restore();
