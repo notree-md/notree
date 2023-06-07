@@ -9,6 +9,7 @@
     "typecheck": {
       "dependsOn": ["@mindgraph/types#build"]
     },
+    "test": {},
     "dev": {
       "dependsOn": ["^build"]
     }

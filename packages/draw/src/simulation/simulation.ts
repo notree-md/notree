@@ -86,7 +86,7 @@ export class Simulation {
       centerStrength,
       alpha,
       alphaDecay,
-      randomizeStartingPoints
+      randomizeStartingPoints,
     } = this.configuration;
 
     // https://gist.github.com/mbostock/7881887
@@ -99,7 +99,8 @@ export class Simulation {
         randomX;
       node.y =
         Math.sin((i / initialClusterStrength) * 2 * Math.PI) * 200 +
-        height / 2 + randomY;
+        height / 2 +
+        randomY;
     });
 
     return forceSimulation(this.nodes)

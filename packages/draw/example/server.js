@@ -27,14 +27,32 @@ async function createServer() {
   });
 
   app.use(vite.middlewares);
+
+  app.use('/tests/*', async (req, res, next) => {
+    try {
+      const html = await vite.transformIndexHtml(
+        req.originalUrl,
+        fs.readFileSync(
+          path.resolve(`${__dirname}`, req.originalUrl.replace('/', '')),
+          'utf-8',
+        ),
+      );
+
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+    } catch (error) {
+      vite.ssrFixStacktrace(error);
+      next(error);
+    }
+  });
+
   app.use('*', async (req, res, next) => {
     try {
-      const hmtl = await vite.transformIndexHtml(
+      const html = await vite.transformIndexHtml(
         req.originalUrl,
         fs.readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8'),
       );
 
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(hmtl);
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
     } catch (error) {
       vite.ssrFixStacktrace(error);
       next(error);

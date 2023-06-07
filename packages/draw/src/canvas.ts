@@ -5,26 +5,24 @@ import { Zoomer } from './zoomer';
 import { Simulation } from './simulation';
 
 export class Canvas {
-  constructor(
-    { width, height }: Styles,
-    canvasElement?: HTMLCanvasElement,
-    deviceScale?: number,
-  ) {
+  constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
     this.deviceScale = deviceScale;
     this.element = canvasElement ? select(canvasElement) : create('canvas');
-
     this.context = this.element.node()?.getContext('2d') || undefined;
-
     this.setDimensions();
   }
 
   public setDimensions(): void {
-    const elNode = this.element.node()
-    if(elNode) {
+    const elNode = this.element.node();
+    if (elNode) {
       const currElWidth = elNode.getBoundingClientRect().width;
       const currElHeight = elNode.getBoundingClientRect().height;
-      const appliedWidth = this.deviceScale ? this.deviceScale * currElWidth : currElWidth;
-      const appliedHeight = this.deviceScale ? this.deviceScale * currElHeight : currElHeight;
+      const appliedWidth = this.deviceScale
+        ? this.deviceScale * currElWidth
+        : currElWidth;
+      const appliedHeight = this.deviceScale
+        ? this.deviceScale * currElHeight
+        : currElHeight;
       this.element.attr('width', appliedWidth);
       this.element.attr('height', appliedHeight);
     }
@@ -54,8 +52,8 @@ export class Canvas {
     this.context.clearRect(
       0,
       0,
-      Number(this.element.attr("width")),
-      Number(this.element.attr("height")),
+      Number(this.element.attr('width')),
+      Number(this.element.attr('height')),
     );
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);

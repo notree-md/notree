@@ -6,7 +6,8 @@
     "build": "vite build && tsc --emitDeclarationOnly",
     "lint": "eslint src/**",
     "typecheck": "tsc --noEmit",
-    "dev": "node example/server.js"
+    "dev": "node example/server.js",
+    "test": "node example/server.js & PID=$!; wait-on http://localhost:5173; cypress run --env type=actual; kill -9 $PID"
   },
   "type": "module",
   "author": "jollyjerr <jollyjerr@gmail.com>",
@@ -40,6 +41,7 @@
     "d3-array": "^3.2.3",
     "d3-force": "^3.0.0",
     "d3-selection": "^3.0.0",
-    "d3-zoom": "^3.0.0"
+    "d3-zoom": "^3.0.0",
+    "wait-on": "^7.0.1"
   }
 }

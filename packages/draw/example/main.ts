@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         titleColor: '#ffffff',
       },
       simulationConfig: {
-        randomizeStartingPoints: false
+        randomizeStartingPoints: false,
       },
       canvas,
     });

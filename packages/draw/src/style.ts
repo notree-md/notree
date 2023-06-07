@@ -17,14 +17,16 @@ export interface Styles {
 export function createStyles(
   styleConfig: Partial<GraphStyleConfig> | undefined,
   canvasWidth: number,
-  canvasHeight: number
+  canvasHeight: number,
 ): Styles {
   if (isSSR()) {
     return { ...default_styles, width: 0, height: 0, deviceScale: 0 };
   }
 
-  const width = window.innerWidth <= canvasWidth ? window.innerWidth : canvasWidth;
-  const height = window.innerHeight <= canvasHeight ? window.innerHeight : canvasHeight;
+  const width =
+    window.innerWidth <= canvasWidth ? window.innerWidth : canvasWidth;
+  const height =
+    window.innerHeight <= canvasHeight ? window.innerHeight : canvasHeight;
   const deviceScale = window.devicePixelRatio;
 
   return {
