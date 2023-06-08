@@ -9,7 +9,8 @@ describe('mindgraph visual tests', () => {
     //   There is probably a cleaner way, but this works for now
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500);
-    cy.get('#app').should('have.attr', 'width', '1000');
+    const expectedWidth = window.devicePixelRatio * 1000;
+    cy.get('#app').should('have.attr', 'width', expectedWidth);
     cy.compareSnapshot('full-width-canvas', 0.1);
   });
 
@@ -17,7 +18,8 @@ describe('mindgraph visual tests', () => {
     cy.visit('http://localhost:5173/tests/test2.html');
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     cy.wait(500);
-    cy.get('#app').should('have.attr', 'width', '400');
+    const expectedWidth = window.devicePixelRatio * 400;
+    cy.get('#app').should('have.attr', 'width', expectedWidth);
     cy.compareSnapshot('400-px-width-canvas', 0.1);
   });
 });
