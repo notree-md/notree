@@ -9,7 +9,6 @@ import {
   forceLink,
   Simulation as D3Simulation,
 } from 'd3-force';
-import { Styles } from '../style';
 
 export type ConfiguredSimulationLink = SimulationNodeDatum & {
   source: SimulationNode;
@@ -18,7 +17,8 @@ export type ConfiguredSimulationLink = SimulationNodeDatum & {
 
 export interface MindGraphSimulationArgs {
   data: GraphData;
-  styles: Styles;
+  width: number;
+  height: number;
   simulationConfig?: Partial<GraphSimulationConfig>;
 }
 
@@ -30,7 +30,8 @@ export class Simulation {
   constructor({
     data: { nodes, links },
     simulationConfig,
-    styles,
+    width,
+    height
   }: MindGraphSimulationArgs) {
     this.nodes = map(nodes, merge_node_datum);
     this.links = map(
@@ -41,15 +42,12 @@ export class Simulation {
       ...default_simulation_config,
       ...simulationConfig,
     };
-    this.simulation = this.build({
-      width: styles.width,
-      height: styles.height,
-    });
+    this.simulation = this.build({ width, height });
   }
 
-  public start(observers?: (() => void)[]): void {
+  public start(observers?: ((nodes: SimulationNode[], links: ConfiguredSimulationLink[]) => void)[]): void {
     this.simulation.on('tick', () => {
-      observers?.forEach((f) => f());
+      observers?.forEach((f) => f(this.nodes, this.links));
     });
   }
 

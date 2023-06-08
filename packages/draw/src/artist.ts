@@ -1,16 +1,17 @@
 import { Canvas } from './canvas';
-import { Simulation } from './simulation';
 import { Zoomer } from './zoomer';
-import { Styles, createStyles, generateUniqueColors, isSSR } from './style';
+import { Styles, createStyles, isSSR } from './style';
 import {
   MindGraphConfig,
   MindGraphEvent,
   NodeClickCallback,
+  RenderableNode,
   SimulationNode,
 } from './types';
+import { ConfiguredSimulationLink } from './simulation/simulation';
 
 export class Artist {
-  constructor({ data, style, simulationConfig, canvas }: MindGraphConfig) {
+  constructor({ style, canvas }: MindGraphConfig) {
     this.canvasElement = canvas;
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
     this.canvasInitialHeight = canvas.getBoundingClientRect().height;
@@ -21,34 +22,52 @@ export class Artist {
       this.canvasInitialHeight,
     );
 
-    this.simulation = new Simulation({
-      data,
-      simulationConfig,
-      styles: this.styles,
-    });
-
-    this.click_map_colors = generateUniqueColors(data.nodes.length);
-    this.click_map_canvas = new Canvas();
-    this.visual_canvas = undefined;
-
-    this.zoomer = new Zoomer();
-    this.event_listeners = [];
-  }
-
-  public draw(): void {
-    if (isSSR()) return;
-
     this.visual_canvas = new Canvas(
       this.canvasElement,
       this.styles.deviceScale,
     );
 
+    this.zoomer = new Zoomer();
+    this.event_listeners = [];
+    this.nodes = [];
+    this.links = [];
+
     this.add_window_resize_listener();
     this.add_zoom_listener();
     this.add_click_handler();
     this.add_mousemove_handler();
+  }
 
-    this.simulation.start([() => this.tick()]);
+  public get canvasInitialWidth(): number {
+    return this.canvasInitialWidth;
+  }
+  
+  public get canvasInitialHeight(): number {
+    return this.canvasInitialHeight;
+  }
+
+  public draw(nodes: SimulationNode[], links: ConfiguredSimulationLink[]): void {
+    if (isSSR()) return;
+    this.nodes = nodes.map(n => {
+      const r = this.styles.minimumNodeSize + (n.linkCount || 1) ** this.styles.nodeScaleFactor;
+      return {
+        ...n,
+        radius: r,
+        text: n.name.split(".md")[0]
+      }
+    });
+    this.links = links;
+    this.redraw()
+  }
+
+  private redraw(): void {
+    this.visual_canvas?.drawFrame({
+      nodes: this.nodes,
+      links: this.links,
+      zoomer: this.zoomer,
+      styles: this.styles,
+      activeNode: this.activeNode,
+    });
   }
 
   public addEventListener(
@@ -68,34 +87,23 @@ export class Artist {
   private canvasInitialHeight: number;
   private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
-  private activeNode: SimulationNode | undefined;
+  private activeNode: RenderableNode | undefined;
   private styles: Styles;
-  private simulation: Simulation;
-  private click_map_canvas: Canvas;
-  private click_map_colors: string[];
   private zoomer: Zoomer;
+  private nodes: RenderableNode[];
+  private links: ConfiguredSimulationLink[];
   private event_listeners: {
     id: number;
     event: MindGraphEvent;
     callback: NodeClickCallback;
   }[];
 
-  private tick(): void {
-    this.visual_canvas?.drawFrame({
-      nodes: this.simulation.nodes,
-      links: this.simulation.links,
-      zoomer: this.zoomer,
-      styles: this.styles,
-      activeNode: this.activeNode,
-    });
-  }
-
   private add_window_resize_listener(): void {
     if (isSSR()) return;
 
     window.addEventListener('resize', () => {
       this.visual_canvas?.setDimensions();
-      this.tick();
+      this.redraw();
     });
   }
 
@@ -106,58 +114,58 @@ export class Artist {
         height: this.styles.height,
         minZoom: this.styles.minZoom,
         maxZoom: this.styles.maxZoom,
-        observers: [() => this.tick()],
+        observers: [() => this.redraw()],
       }),
     );
   }
 
+  private between(min: number, max: number, val: number): boolean {
+    return val >= min && val <= max;
+  }
+
+  private detect_node_cursor_collision(x: number, y: number): RenderableNode | undefined {
+    const translatedMouseX = (x - this.zoomer.x);
+    const translatedMouseY = (y - this.zoomer.y);
+    for (const node of this.nodes) {
+      if (node.x && node.y) {
+        const scaledNodeX = node.x * this.zoomer.k;
+        const scaledNodeY = node.y * this.zoomer.k;
+        const scaledNodeRadius = node.radius * this.zoomer.k;
+        if (this.between(scaledNodeX - scaledNodeRadius, scaledNodeX + scaledNodeRadius, translatedMouseX) && (this.between(scaledNodeY - scaledNodeRadius, scaledNodeY + scaledNodeRadius, translatedMouseY))) {
+          return node;
+        }
+      }
+    }
+    return
+  }
+
   private add_click_handler(): void {
-    this.visual_canvas?.on('click', ({ layerX, layerY }) => {
+    this.visual_canvas?.on('click', ({layerX, layerY}) => {
       if (!this.event_listeners.length) return;
-
-      const uniqueColorToNode = this.click_map_canvas.drawFrame({
-        styles: this.styles,
-        uniqueNodeColors: this.click_map_colors,
-        nodes: this.simulation.nodes,
-        links: this.simulation.links,
-        zoomer: this.zoomer,
-        activeNode: this.activeNode,
-      });
-
-      const clickedNode =
-        uniqueColorToNode[this.click_map_canvas.getPixelColor(layerX, layerY)];
-
+      
+      const clickedNode = this.detect_node_cursor_collision(layerX, layerY);
       if (clickedNode) {
         this.event_listeners
           .filter((e) => e.event === 'nodeClick')
-          .forEach((c) => c.callback(clickedNode));
+          .forEach((c) => c.callback(clickedNode as RenderableNode));
       }
     });
   }
 
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
-      const uniqueColorToNode = this.click_map_canvas.drawFrame({
-        styles: this.styles,
-        uniqueNodeColors: this.click_map_colors,
-        nodes: this.simulation.nodes,
-        links: this.simulation.links,
-        zoomer: this.zoomer,
-        activeNode: this.activeNode,
-      });
-
-      this.tick();
-
-      const hoverNode =
-        uniqueColorToNode[
-          this.click_map_canvas.getPixelColor(offsetX, offsetY)
-        ];
-
+      const hoverNode = this.detect_node_cursor_collision(offsetX, offsetY)
       if (hoverNode) {
-        this.activeNode = hoverNode;
-        this.visual_canvas?.setCursor('pointer');
+        if (this.activeNode != hoverNode) {
+          this.activeNode = hoverNode;
+          this.redraw();
+          this.visual_canvas?.setCursor('pointer');
+        }
       } else {
-        this.activeNode = undefined;
+        if (this.activeNode != undefined) {
+          this.activeNode = undefined;
+          this.redraw();
+        }
         this.visual_canvas?.setCursor('default');
       }
     });

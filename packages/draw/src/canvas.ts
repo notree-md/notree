@@ -1,6 +1,6 @@
 import { create, select, Selection } from 'd3-selection';
 import { convertRgbArrayToStyle, Styles } from './style';
-import { NodeClickEvent, SimulationNode } from './types';
+import { NodeClickEvent, RenderableNode, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
 import { ConfiguredSimulationLink } from './simulation/simulation';
 
@@ -32,7 +32,7 @@ export class Canvas {
     }
   }
 
-  private drawLink(link: ConfiguredSimulationLink, styles: Styles, activeNode?: SimulationNode) {
+  private drawLink(link: ConfiguredSimulationLink, styles: Styles, activeNode?: RenderableNode) {
       if (!this.context) return;
       if (link.source.x && link.source.y && link.target.x && link.target.y) {
         this.context.beginPath();
@@ -53,56 +53,46 @@ export class Canvas {
         this.context.closePath();
       }
   }
-  private drawNode(n: SimulationNode, styles: Styles, mapColorToNode: boolean, nodeFill: string, nodeColorMap: Record<string, SimulationNode>, activeNode?: SimulationNode) {
+
+  private drawNode(n: RenderableNode, styles: Styles, mapColorToNode: boolean, nodeFill: string, activeNode?: RenderableNode) {
       if (!this.context) return;
 
       if (n.x && n.y) {
         const isActiveNode = activeNode && n.id === activeNode.id;
-
-        // increase clickable area of node
-        const r = styles.minimumNodeSize + (n.linkCount || 1) ** styles.nodeScaleFactor;
-        const radius = mapColorToNode ? r + 3 : r;
-
         this.context.beginPath();
 
         if (isActiveNode) {
           this.context.fillStyle = mapColorToNode
             ? nodeFill
             : styles.activeNodeColor;
-          this.context.arc(n.x, n.y, radius + 1, 0, Math.PI * 2);
+          this.context.arc(n.x, n.y, n.radius + 1, 0, Math.PI * 2);
         } else {
           this.context.fillStyle = nodeFill;
-          this.context.arc(n.x, n.y, radius, 0, Math.PI * 2);
+          this.context.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
         }
 
         this.context.fill();
         this.context.closePath();
-
-        const name = n.name.split('.md')[0];
 
         this.context.beginPath();
         this.context.fillStyle = styles.titleColor;
 
         if (isActiveNode) {
           this.context.fillText(
-            name,
-            n.x - this.context.measureText(name).width / 2,
-            n.y + radius + styles.nodeTitlePadding + 2,
+            n.text,
+            n.x - this.context.measureText(n.text).width / 2,
+            n.y + n.radius + styles.nodeTitlePadding + 2,
           );
         } else {
           this.context.fillText(
-            name,
-            n.x - this.context.measureText(name).width / 2,
-            n.y + radius + styles.nodeTitlePadding,
+            n.text,
+            n.x - this.context.measureText(n.text).width / 2,
+            n.y + n.radius + styles.nodeTitlePadding,
           );
         }
 
         this.context.fill();
         this.context.closePath();
-
-        if (mapColorToNode) {
-          nodeColorMap[nodeFill] = n;
-        }
       }
 
   }
@@ -116,13 +106,13 @@ export class Canvas {
     uniqueNodeColors,
   }: {
     zoomer: Zoomer;
-    nodes: SimulationNode[],
+    nodes: RenderableNode[],
     links: ConfiguredSimulationLink[],
     styles: Styles;
-    activeNode?: SimulationNode;
+    activeNode?: RenderableNode;
     uniqueNodeColors?: string[];
-  }): Record<string, SimulationNode> {
-    if (!this.context) return {};
+  }) {
+    if (!this.context) return;
 
     this.context.save();
 
@@ -137,16 +127,13 @@ export class Canvas {
 
     links.forEach((link) => this.drawLink(link, styles, activeNode));
 
-    const nodeColorMap: Record<string, SimulationNode> = {};
     nodes.forEach((n, i) => {
       const mapColorToNode = !!uniqueNodeColors;
       const nodeFill = mapColorToNode ? uniqueNodeColors[i] : styles.nodeColor;
-      this.drawNode(n, styles, mapColorToNode, nodeFill, nodeColorMap, activeNode)
+      this.drawNode(n, styles, mapColorToNode, nodeFill, activeNode)
     });
 
     this.context.restore();
-
-    return nodeColorMap;
   }
 
   public on(event: 'click', callback: (args: NodeClickEvent) => void): void;

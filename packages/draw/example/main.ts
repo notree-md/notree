@@ -1,5 +1,6 @@
 import { GraphData } from '@mindgraph/types';
 import { Artist } from '../src/index';
+import { Simulation } from '../src/simulation';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('app') as HTMLCanvasElement;
@@ -21,17 +22,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         linkColor: '#01586a',
         titleColor: '#ffffff',
       },
-      simulationConfig: {
-        randomizeStartingPoints: false,
-      },
       canvas,
     });
+
+    const simulation = new Simulation({
+      data,
+      simulationConfig: {
+        randomizeStartingPoints: false
+      },
+      width: artist.canvasInitialWidth,
+      height: artist.canvasInitialHeight
+    })
+
+    simulation.start([(nodes, links) => {
+      artist.draw(nodes, links)
+    }])
 
     artist.addEventListener('nodeClick', (node) => {
       alert(node.id);
     });
-
-    artist.draw();
   } catch (error) {
     alert(error);
   }
