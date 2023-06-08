@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
 
     const artist = new Artist({
-      data,
       style: {
         nodeColor: '#01b0d3',
         linkColor: '#01586a',

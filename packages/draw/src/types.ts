@@ -43,8 +43,6 @@ export type GraphSimulationConfig = {
 };
 
 export interface MindGraphConfig {
-  data: GraphData;
   style?: Partial<GraphStyleConfig>;
-  simulationConfig?: Partial<GraphSimulationConfig>;
   canvas: HTMLCanvasElement;
 }
