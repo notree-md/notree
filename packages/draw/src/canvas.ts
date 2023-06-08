@@ -2,7 +2,6 @@ import { create, select, Selection } from 'd3-selection';
 import { convertRgbArrayToStyle, Styles } from './style';
 import { NodeClickEvent, SimulationNode } from './types';
 import { Zoomer } from './zoomer';
-import { Simulation } from './simulation';
 import { ConfiguredSimulationLink } from './simulation/simulation';
 
 export class Canvas {
@@ -52,7 +51,6 @@ export class Canvas {
         this.context.closePath();
       }
   }
-
   private drawNode(n: SimulationNode, styles: Styles, mapColorToNode: boolean, nodeFill: string, nodeColorMap: Record<string, SimulationNode>, activeNode?: SimulationNode) {
       if (!this.context) return;
 

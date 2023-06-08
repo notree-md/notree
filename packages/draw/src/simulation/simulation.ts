@@ -122,8 +122,6 @@ const empty_node_datum = {
 };
 
 const default_simulation_config: GraphSimulationConfig = {
-  minZoom: 0.4,
-  maxZoom: 16,
   chargeStrength: -400,
   centerStrength: 0.28,
   linkStrength: 0.06,

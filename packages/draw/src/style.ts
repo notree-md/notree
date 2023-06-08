@@ -12,6 +12,8 @@ export interface Styles {
   nodeTitlePadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
+  minZoom: number;
+  maxZoom: number;
 }
 
 export function createStyles(
@@ -55,6 +57,8 @@ export function isSSR(): boolean {
 }
 
 const default_styles: GraphStyleConfig = {
+  minZoom: 0.4,
+  maxZoom: 16,
   nodeColor: 'red',
   activeNodeColor: 'white',
   linkColor: 'blue',

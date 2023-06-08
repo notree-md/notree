@@ -20,11 +20,11 @@ export type GraphStyleConfig = {
   nodeTitlePadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
+  minZoom: number;
+  maxZoom: number;
 };
 
 export type GraphSimulationConfig = {
-  minZoom: number;
-  maxZoom: number;
   chargeStrength: number;
   centerStrength: number;
   linkStrength: number;

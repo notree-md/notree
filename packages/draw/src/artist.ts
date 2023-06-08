@@ -97,8 +97,8 @@ export class Artist {
       this.zoomer.configureZoomArea<HTMLCanvasElement>({
         width: this.styles.width,
         height: this.styles.height,
-        minZoom: this.simulation.configuration.minZoom,
-        maxZoom: this.simulation.configuration.maxZoom,
+        minZoom: this.styles.minZoom,
+        maxZoom: this.styles.maxZoom,
         observers: [() => this.tick()],
       }),
     );
