@@ -2,9 +2,10 @@
   "name": "mindgraph",
   "description": "monorepo for @mindgraph/*",
   "scripts": {
-    "ci": "pnpm run format:check && turbo run build lint typecheck",
+    "ci": "pnpm run format:check && turbo run build lint typecheck && turbo run test",
     "build": "turbo run build",
     "lint": "turbo run lint",
+    "test": "turbo run test",
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "format": "prettier . --write",

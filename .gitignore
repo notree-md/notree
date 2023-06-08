@@ -21,3 +21,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+*.mp4
+
+packages/draw/cypress/screenshots/
+packages/draw/cypress/snapshots/diff/

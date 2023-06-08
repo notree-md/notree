@@ -66,18 +66,21 @@ export class Simulation {
       centerStrength,
       alpha,
       alphaDecay,
+      randomizeStartingPoints,
     } = this.configuration;
 
     // https://gist.github.com/mbostock/7881887
     this.nodes.forEach((node, i) => {
+      const randomX = randomizeStartingPoints ? Math.random() : 0;
+      const randomY = randomizeStartingPoints ? Math.random() : 0;
       node.x =
         Math.cos((i / initialClusterStrength) * 2 * Math.PI) * 200 +
         width / 2 +
-        Math.random();
+        randomX;
       node.y =
         Math.sin((i / initialClusterStrength) * 2 * Math.PI) * 200 +
         height / 2 +
-        Math.random();
+        randomY;
     });
 
     return forceSimulation(this.nodes)

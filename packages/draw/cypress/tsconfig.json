@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["es5", "dom"],
+    "types": ["cypress", "cypress-visual-regression", "node"],
+    "esModuleInterop": true
+  },
+  "include": ["**/*.ts"]
+}

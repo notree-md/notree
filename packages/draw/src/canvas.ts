@@ -5,25 +5,27 @@ import { Zoomer } from './zoomer';
 import { ConfiguredSimulationLink } from './simulation/simulation';
 
 export class Canvas {
-  constructor(
-    { width, height }: Styles,
-    canvasElement?: HTMLCanvasElement,
-    deviceScale?: number,
-  ) {
+  constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
     this.deviceScale = deviceScale;
     this.element = canvasElement ? select(canvasElement) : create('canvas');
-
     this.context = this.element.node()?.getContext('2d') || undefined;
-
-    this.setDimensions(width, height);
+    this.setDimensions();
   }
 
-  public setDimensions(width: number, height: number): void {
-    const appliedWidth = this.deviceScale ? width * this.deviceScale : width;
-    const appliedHeight = this.deviceScale ? height * this.deviceScale : height;
-
-    this.element.attr('width', appliedWidth);
-    this.element.attr('height', appliedHeight);
+  public setDimensions(): void {
+    const elNode = this.element.node();
+    if (elNode) {
+      const currElWidth = elNode.getBoundingClientRect().width;
+      const currElHeight = elNode.getBoundingClientRect().height;
+      const appliedWidth = this.deviceScale
+        ? this.deviceScale * currElWidth
+        : currElWidth;
+      const appliedHeight = this.deviceScale
+        ? this.deviceScale * currElHeight
+        : currElHeight;
+      this.element.attr('width', appliedWidth);
+      this.element.attr('height', appliedHeight);
+    }
 
     if (this.deviceScale) {
       this.context?.scale(this.deviceScale, this.deviceScale);
