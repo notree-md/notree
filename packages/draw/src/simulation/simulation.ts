@@ -31,7 +31,7 @@ export class Simulation {
     data: { nodes, links },
     simulationConfig,
     width,
-    height
+    height,
   }: MindGraphSimulationArgs) {
     this.nodes = map(nodes, merge_node_datum);
     this.links = map(
@@ -45,7 +45,12 @@ export class Simulation {
     this.simulation = this.build({ width, height });
   }
 
-  public start(observers?: ((nodes: SimulationNode[], links: ConfiguredSimulationLink[]) => void)[]): void {
+  public start(
+    observers?: ((
+      nodes: SimulationNode[],
+      links: ConfiguredSimulationLink[],
+    ) => void)[],
+  ): void {
     this.simulation.on('tick', () => {
       observers?.forEach((f) => f(this.nodes, this.links));
     });

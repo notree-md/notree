@@ -2,12 +2,12 @@ import type { GraphData } from '@mindgraph/types';
 import { SimulationNodeDatum } from 'd3-force';
 
 export type RenderableNode = {
-  x?: number,
-  y?: number,
-  radius: number,
-  id: string,
-  text: string
-}
+  x?: number;
+  y?: number;
+  radius: number;
+  id: string;
+  text: string;
+};
 
 export type SimulationNode = SimulationNodeDatum & GraphData['nodes'][0];
 
