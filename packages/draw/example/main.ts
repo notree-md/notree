@@ -2,9 +2,9 @@ import { GraphData } from '@mindgraph/types';
 import { Artist } from '../src/index';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const body = document.getElementById('app') as HTMLCanvasElement;
+  const canvas = document.getElementById('app') as HTMLCanvasElement;
 
-  if (!body) {
+  if (!canvas) {
     alert('no canvas found in html body');
     return;
   }
@@ -21,13 +21,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         linkColor: '#01586a',
         titleColor: '#ffffff',
       },
+      simulationConfig: {
+        randomizeStartingPoints: false,
+      },
+      canvas,
     });
 
     artist.addEventListener('nodeClick', (node) => {
       alert(node.id);
     });
 
-    artist.draw(body);
+    artist.draw();
   } catch (error) {
     alert(error);
   }

@@ -4,9 +4,10 @@
   "description": "web based graph view for markdown notes",
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
-    "lint": "eslint src/**",
+    "lint": "eslint src/**; eslint cypress",
     "typecheck": "tsc --noEmit",
-    "dev": "node example/server.js"
+    "dev": "node example/server.js",
+    "test": "cypress install; node example/server.js & PID=$!; wait-on -t 10000 http://localhost:5173; cypress run --env type=actual; kill -9 $PID"
   },
   "type": "module",
   "author": "jollyjerr <jollyjerr@gmail.com>",
@@ -29,9 +30,13 @@
     "@types/d3-force": "^3.0.4",
     "@types/d3-selection": "^3.0.5",
     "@types/d3-zoom": "^3.0.3",
+    "cypress": "^12.13.0",
+    "cypress-visual-regression": "^3.0.0",
+    "eslint-plugin-cypress": "^2.13.3",
     "express": "^4.18.2",
     "vite": "^4.3.9",
-    "vitest": "^0.31.1"
+    "vitest": "^0.31.1",
+    "wait-on": "^7.0.1"
   },
   "dependencies": {
     "@mindgraph/types": "workspace:*",
