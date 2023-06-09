@@ -10,6 +10,8 @@ export interface Styles {
   activeLinkColor: string;
   titleColor: string;
   nodeTitlePadding: number;
+  activeNodeTitlePadding: number;
+  activeNodeRadiusPadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
   minZoom: number;
@@ -69,6 +71,8 @@ const default_styles: GraphStyleConfig = {
   activeLinkColor: 'white',
   titleColor: 'green',
   nodeTitlePadding: 12,
+  activeNodeTitlePadding: 14,
+  activeNodeRadiusPadding: 1,
   nodeScaleFactor: 0.96,
   minimumNodeSize: 4,
 };

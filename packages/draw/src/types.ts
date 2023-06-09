@@ -9,6 +9,17 @@ export type RenderableNode = {
   text: string;
 };
 
+export type RenderableLink = {
+  source: {
+    x?: number;
+    y?: number;
+  };
+  target: {
+    x?: number;
+    y?: number;
+  };
+};
+
 export type SimulationNode = SimulationNodeDatum & GraphData['nodes'][0];
 
 export type NodeClickCallback<TReturn = void> = (
@@ -26,6 +37,8 @@ export type GraphStyleConfig = {
   activeLinkColor: string;
   titleColor: string;
   nodeTitlePadding: number;
+  activeNodeTitlePadding: number;
+  activeNodeRadiusPadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
   minZoom: number;
@@ -44,6 +57,5 @@ export type GraphSimulationConfig = {
 
 export interface MindGraphConfig {
   style?: Partial<GraphStyleConfig>;
-  simulationConfig?: Partial<GraphSimulationConfig>;
   canvas: HTMLCanvasElement;
 }

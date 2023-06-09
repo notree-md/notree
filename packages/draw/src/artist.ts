@@ -100,7 +100,7 @@ export class Artist {
     if (isSSR()) return;
 
     window.addEventListener('resize', () => {
-      this.visual_canvas?.setDimensions();
+      this.visual_canvas?.resizeCanvas();
       this.redraw();
     });
   }

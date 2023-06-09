@@ -21,9 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         linkColor: '#01586a',
         titleColor: '#ffffff',
       },
-      simulationConfig: {
-        randomizeStartingPoints: false,
-      },
       canvas,
     });
 
