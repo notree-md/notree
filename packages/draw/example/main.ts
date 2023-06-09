@@ -21,21 +21,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         linkColor: '#01586a',
         titleColor: '#ffffff',
       },
+      simulationConfig: {
+        randomizeStartingPoints: false,
+      },
       canvas,
     });
 
     const simulation = new Simulation({
       data,
       simulationConfig: {
-        randomizeStartingPoints: false
+        randomizeStartingPoints: false,
       },
       width: artist.canvasInitialWidth,
-      height: artist.canvasInitialHeight
-    })
+      height: artist.canvasInitialHeight,
+    });
 
-    simulation.start([(nodes, links) => {
-      artist.draw(nodes, links)
-    }])
+    simulation.start([
+      (nodes, links) => {
+        artist.draw(nodes, links);
+      },
+    ]);
 
     artist.addEventListener('nodeClick', (node) => {
       alert(node.id);

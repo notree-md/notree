@@ -11,6 +11,9 @@ import {
 import { ConfiguredSimulationLink } from './simulation/simulation';
 
 export class Artist {
+  public readonly canvasInitialWidth: number;
+  public readonly canvasInitialHeight: number;
+
   constructor({ style, canvas }: MindGraphConfig) {
     this.canvasElement = canvas;
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
@@ -38,26 +41,23 @@ export class Artist {
     this.add_mousemove_handler();
   }
 
-  public get canvasInitialWidth(): number {
-    return this.canvasInitialWidth;
-  }
-  
-  public get canvasInitialHeight(): number {
-    return this.canvasInitialHeight;
-  }
-
-  public draw(nodes: SimulationNode[], links: ConfiguredSimulationLink[]): void {
+  public draw(
+    nodes: SimulationNode[],
+    links: ConfiguredSimulationLink[],
+  ): void {
     if (isSSR()) return;
-    this.nodes = nodes.map(n => {
-      const r = this.styles.minimumNodeSize + (n.linkCount || 1) ** this.styles.nodeScaleFactor;
+    this.nodes = nodes.map((n) => {
+      const r =
+        this.styles.minimumNodeSize +
+        (n.linkCount || 1) ** this.styles.nodeScaleFactor;
       return {
         ...n,
         radius: r,
-        text: n.name.split(".md")[0]
-      }
+        text: n.name.split('.md')[0],
+      };
     });
     this.links = links;
-    this.redraw()
+    this.redraw();
   }
 
   private redraw(): void {
@@ -83,8 +83,6 @@ export class Artist {
     return id;
   }
 
-  private canvasInitialWidth: number;
-  private canvasInitialHeight: number;
   private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
   private activeNode: RenderableNode | undefined;
@@ -123,26 +121,40 @@ export class Artist {
     return val >= min && val <= max;
   }
 
-  private detect_node_cursor_collision(x: number, y: number): RenderableNode | undefined {
-    const translatedMouseX = (x - this.zoomer.x);
-    const translatedMouseY = (y - this.zoomer.y);
+  private detect_node_cursor_collision(
+    x: number,
+    y: number,
+  ): RenderableNode | undefined {
+    const translatedMouseX = x - this.zoomer.x;
+    const translatedMouseY = y - this.zoomer.y;
     for (const node of this.nodes) {
       if (node.x && node.y) {
         const scaledNodeX = node.x * this.zoomer.k;
         const scaledNodeY = node.y * this.zoomer.k;
         const scaledNodeRadius = node.radius * this.zoomer.k;
-        if (this.between(scaledNodeX - scaledNodeRadius, scaledNodeX + scaledNodeRadius, translatedMouseX) && (this.between(scaledNodeY - scaledNodeRadius, scaledNodeY + scaledNodeRadius, translatedMouseY))) {
+        if (
+          this.between(
+            scaledNodeX - scaledNodeRadius,
+            scaledNodeX + scaledNodeRadius,
+            translatedMouseX,
+          ) &&
+          this.between(
+            scaledNodeY - scaledNodeRadius,
+            scaledNodeY + scaledNodeRadius,
+            translatedMouseY,
+          )
+        ) {
           return node;
         }
       }
     }
-    return
+    return;
   }
 
   private add_click_handler(): void {
-    this.visual_canvas?.on('click', ({layerX, layerY}) => {
+    this.visual_canvas?.on('click', ({ layerX, layerY }) => {
       if (!this.event_listeners.length) return;
-      
+
       const clickedNode = this.detect_node_cursor_collision(layerX, layerY);
       if (clickedNode) {
         this.event_listeners
@@ -154,7 +166,7 @@ export class Artist {
 
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
-      const hoverNode = this.detect_node_cursor_collision(offsetX, offsetY)
+      const hoverNode = this.detect_node_cursor_collision(offsetX, offsetY);
       if (hoverNode) {
         if (this.activeNode != hoverNode) {
           this.activeNode = hoverNode;
