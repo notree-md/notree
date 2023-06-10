@@ -11,13 +11,15 @@ import { ConfiguredSimulationLink } from './simulation/simulation';
 export class Canvas {
   constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
     this.deviceScale = deviceScale;
-    this.element = canvasElement ? select(canvasElement) : create('canvas');
-    this.context = this.element.node()?.getContext('2d') || undefined;
+    this.canvasElement = canvasElement
+      ? select(canvasElement)
+      : create('canvas');
+    this.context = this.canvasElement.node()?.getContext('2d') || undefined;
     this.resizeCanvas();
   }
 
   public resizeCanvas(): void {
-    const elNode = this.element.node();
+    const elNode = this.canvasElement.node();
     if (elNode) {
       const currElWidth = elNode.getBoundingClientRect().width;
       const currElHeight = elNode.getBoundingClientRect().height;
@@ -27,8 +29,8 @@ export class Canvas {
       const appliedHeight = this.deviceScale
         ? this.deviceScale * currElHeight
         : currElHeight;
-      this.element.attr('width', appliedWidth);
-      this.element.attr('height', appliedHeight);
+      this.canvasElement.attr('width', appliedWidth);
+      this.canvasElement.attr('height', appliedHeight);
     }
 
     if (this.deviceScale) {
@@ -88,14 +90,12 @@ export class Canvas {
     links,
     styles,
     activeNode,
-    uniqueNodeColors,
   }: {
     zoomer: Zoomer;
     nodes: RenderableNode[];
     links: ConfiguredSimulationLink[];
     styles: Styles;
     activeNode?: RenderableNode;
-    uniqueNodeColors?: string[];
   }) {
     if (!this.context) return;
 
@@ -104,8 +104,8 @@ export class Canvas {
     this.context.clearRect(
       0,
       0,
-      Number(this.element.attr('width')),
-      Number(this.element.attr('height')),
+      Number(this.canvasElement.attr('width')),
+      Number(this.canvasElement.attr('height')),
     );
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
@@ -121,14 +121,8 @@ export class Canvas {
     });
 
     nodes.forEach((n, i) => {
-      const mapColorToNode = !!uniqueNodeColors;
       const isActiveNode = activeNode && n.id === activeNode.id;
-      let nodeFill;
-      if (mapColorToNode) {
-        nodeFill = uniqueNodeColors[i];
-      } else {
-        nodeFill = isActiveNode ? styles.activeNodeColor : styles.nodeColor;
-      }
+      const nodeFill = isActiveNode ? styles.activeNodeColor : styles.nodeColor;
       this.drawNode(
         n,
         styles,
@@ -144,7 +138,7 @@ export class Canvas {
   public on(event: 'click', callback: (args: NodeClickEvent) => void): void;
   public on(event: 'mousemove', callback: (args: MouseEvent) => void): void;
   public on(event: never, callback: never): void {
-    this.element.on(event, callback);
+    this.canvasElement.on(event, callback);
   }
 
   public call(
@@ -152,7 +146,7 @@ export class Canvas {
       selection: Selection<HTMLCanvasElement, undefined, null, undefined>,
     ) => void,
   ): void {
-    this.element.call(callback);
+    this.canvasElement.call(callback);
   }
 
   public getPixelColor(x: number, y: number): string {
@@ -164,10 +158,15 @@ export class Canvas {
   }
 
   public setCursor(style: 'pointer' | 'default'): void {
-    this.element.style('cursor', style);
+    this.canvasElement.style('cursor', style);
   }
 
-  private element: Selection<HTMLCanvasElement, undefined, null, undefined>;
+  private canvasElement: Selection<
+    HTMLCanvasElement,
+    undefined,
+    null,
+    undefined
+  >;
   private context: CanvasRenderingContext2D | undefined;
   private deviceScale: number | undefined;
 }

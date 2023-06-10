@@ -1,4 +1,4 @@
-import type { GraphData } from '@mindgraph/types';
+import type { Node } from '@mindgraph/types';
 import { SimulationNodeDatum } from 'd3-force';
 
 export type RenderableNode = {
@@ -20,7 +20,7 @@ export type RenderableLink = {
   };
 };
 
-export type SimulationNode = SimulationNodeDatum & GraphData['nodes'][0];
+export type SimulationNode = SimulationNodeDatum & Node;
 
 export type NodeClickCallback<TReturn = void> = (
   node: RenderableNode,
