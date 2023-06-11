@@ -120,7 +120,7 @@ export class Canvas {
       this.drawLine(link, linkColor);
     });
 
-    nodes.forEach((n, i) => {
+    nodes.forEach((n) => {
       const isActiveNode = activeNode && n.id === activeNode.id;
       const nodeFill = isActiveNode ? styles.activeNodeColor : styles.nodeColor;
       this.drawNode(
