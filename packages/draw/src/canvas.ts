@@ -1,12 +1,13 @@
 import { create, select, Selection } from 'd3-selection';
-import { convertRgbArrayToStyle, Styles } from './style';
-import {
-  NodeClickEvent,
-  RenderableLink as RenderableLine,
-  RenderableNode,
-} from './types';
+import { NodeClickEvent, Line, Circle } from './types';
 import { Zoomer } from './zoomer';
-import { ConfiguredSimulationLink } from './simulation/simulation';
+
+export interface Drawable {
+  draw(canvas: Canvas, isActive: boolean): void;
+  isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
+  onClick?(): void;
+  onHover?(): void;
+}
 
 export class Canvas {
   constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
@@ -38,9 +39,29 @@ export class Canvas {
     }
   }
 
-  private drawLine(line: RenderableLine, lineColor: string) {
+  public drawText(text: string, textColor: string, x: number, y: number) {
     if (!this.context) return;
-    if (line.source.x && line.source.y && line.target.x && line.target.y) {
+    this.context.beginPath();
+    this.context.fillStyle = textColor;
+
+    this.context.fillText(
+      text,
+      x - this.context.measureText(text).width / 2,
+      y,
+    );
+
+    this.context.fill();
+    this.context.closePath();
+  }
+
+  public drawLine(line: Line, lineColor: string) {
+    if (!this.context) return;
+    if (
+      line.source.x != undefined &&
+      line.source.y != undefined &&
+      line.target.x &&
+      line.target.y
+    ) {
       this.context.beginPath();
 
       this.context.strokeStyle = lineColor;
@@ -53,49 +74,40 @@ export class Canvas {
     }
   }
 
-  private drawNode(
-    n: RenderableNode,
-    styles: Styles,
-    nodeFill: string,
-    radiusPadding: number,
-    textPadding: number,
+  public drawCircle(
+    circle: Circle,
+    color: string,
+    textSettings?: { text: string; textColor: string; textPadding: number },
   ) {
     if (!this.context) return;
 
-    if (n.x && n.y) {
+    if (circle.x && circle.y) {
       this.context.beginPath();
-      this.context.fillStyle = nodeFill;
-      this.context.arc(n.x, n.y, n.radius + radiusPadding, 0, Math.PI * 2);
+      this.context.fillStyle = color;
+      this.context.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
 
       this.context.fill();
       this.context.closePath();
 
-      this.context.beginPath();
-      this.context.fillStyle = styles.titleColor;
-
-      this.context.fillText(
-        n.text,
-        n.x - this.context.measureText(n.text).width / 2,
-        n.y + n.radius + textPadding,
-      );
-
-      this.context.fill();
-      this.context.closePath();
+      if (textSettings) {
+        this.drawText(
+          textSettings.text,
+          textSettings.textColor,
+          circle.x,
+          circle.y + circle.radius + textSettings.textPadding,
+        );
+      }
     }
   }
 
   public drawFrame({
     zoomer,
-    nodes,
-    links,
-    styles,
-    activeNode,
+    drawables,
+    activeDrawables,
   }: {
     zoomer: Zoomer;
-    nodes: RenderableNode[];
-    links: ConfiguredSimulationLink[];
-    styles: Styles;
-    activeNode?: RenderableNode;
+    drawables: Drawable[];
+    activeDrawables: Drawable[];
   }) {
     if (!this.context) return;
 
@@ -110,26 +122,8 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    links.forEach((link) => {
-      const isLinkActive =
-        activeNode &&
-        (link.source.id === activeNode.id || link.target.id === activeNode.id);
-      const linkColor = isLinkActive
-        ? styles.activeLinkColor
-        : styles.linkColor;
-      this.drawLine(link, linkColor);
-    });
-
-    nodes.forEach((n) => {
-      const isActiveNode = activeNode && n.id === activeNode.id;
-      const nodeFill = isActiveNode ? styles.activeNodeColor : styles.nodeColor;
-      this.drawNode(
-        n,
-        styles,
-        nodeFill,
-        isActiveNode ? styles.activeNodeRadiusPadding : 0,
-        isActiveNode ? styles.activeNodeTitlePadding : styles.nodeTitlePadding,
-      );
+    drawables.forEach((d) => {
+      d.draw(this, activeDrawables.includes(d));
     });
 
     this.context.restore();
@@ -147,14 +141,6 @@ export class Canvas {
     ) => void,
   ): void {
     this.canvasElement.call(callback);
-  }
-
-  public getPixelColor(x: number, y: number): string {
-    if (!this.context) return '';
-
-    return convertRgbArrayToStyle(
-      Array.from(this.context.getImageData(x, y, 1, 1).data),
-    );
   }
 
   public setCursor(style: 'pointer' | 'default'): void {

@@ -1,14 +1,7 @@
-import { Canvas } from './canvas';
+import { Canvas, Drawable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
-import {
-  MindGraphConfig,
-  MindGraphEvent,
-  NodeClickCallback,
-  RenderableNode,
-  SimulationNode,
-} from './types';
-import { ConfiguredSimulationLink } from './simulation/simulation';
+import { MindGraphConfig } from './types';
 
 export class Artist {
   public readonly canvasInitialWidth: number;
@@ -31,9 +24,8 @@ export class Artist {
     );
 
     this.zoomer = new Zoomer();
-    this.event_listeners = [];
-    this.nodes = [];
-    this.links = [];
+    this.drawables = [];
+    this.activeDrawables = [];
 
     this.add_window_resize_listener();
     this.add_zoom_listener();
@@ -41,60 +33,32 @@ export class Artist {
     this.add_mousemove_handler();
   }
 
-  public draw(
-    nodes: SimulationNode[],
-    links: ConfiguredSimulationLink[],
-  ): void {
+  public getStyles(): Styles {
+    return this.styles;
+  }
+
+  public draw(drawables: Drawable[]): void {
     if (isSSR()) return;
-    this.nodes = nodes.map((n) => {
-      const r =
-        this.styles.minimumNodeSize +
-        (n.linkCount || 1) ** this.styles.nodeScaleFactor;
-      return {
-        ...n,
-        radius: r,
-        text: n.name.split('.md')[0],
-      };
-    });
-    this.links = links;
+    this.drawables = drawables;
     this.redraw();
   }
 
   private redraw(): void {
+    this.updateActiveDrawables();
     this.visual_canvas?.drawFrame({
-      nodes: this.nodes,
-      links: this.links,
       zoomer: this.zoomer,
-      styles: this.styles,
-      activeNode: this.activeNode,
+      drawables: this.drawables,
+      activeDrawables: this.activeDrawables,
     });
-  }
-
-  public addEventListener(
-    event: 'nodeClick',
-    callback: NodeClickCallback,
-  ): number;
-  public addEventListener(event: MindGraphEvent, callback: never): number {
-    const id =
-      (this.event_listeners[this.event_listeners.length - 1]?.id || 0) + 1;
-
-    this.event_listeners.push({ id, event, callback });
-
-    return id;
   }
 
   private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
-  private activeNode: RenderableNode | undefined;
+  private cursor: { x: number; y: number } | undefined;
   private styles: Styles;
   private zoomer: Zoomer;
-  private nodes: RenderableNode[];
-  private links: ConfiguredSimulationLink[];
-  private event_listeners: {
-    id: number;
-    event: MindGraphEvent;
-    callback: NodeClickCallback;
-  }[];
+  private activeDrawables: Drawable[];
+  private drawables: Drawable[];
 
   private add_window_resize_listener(): void {
     if (isSSR()) return;
@@ -117,69 +81,42 @@ export class Artist {
     );
   }
 
-  private between(min: number, max: number, val: number): boolean {
-    return val >= min && val <= max;
-  }
-
-  private detect_node_cursor_collision(
-    x: number,
-    y: number,
-  ): RenderableNode | undefined {
-    const translatedMouseX = x - this.zoomer.x;
-    const translatedMouseY = y - this.zoomer.y;
-    for (const node of this.nodes) {
-      if (node.x && node.y) {
-        const scaledNodeX = node.x * this.zoomer.k;
-        const scaledNodeY = node.y * this.zoomer.k;
-        const scaledNodeRadius = node.radius * this.zoomer.k;
-        if (
-          this.between(
-            scaledNodeX - scaledNodeRadius,
-            scaledNodeX + scaledNodeRadius,
-            translatedMouseX,
-          ) &&
-          this.between(
-            scaledNodeY - scaledNodeRadius,
-            scaledNodeY + scaledNodeRadius,
-            translatedMouseY,
-          )
-        ) {
-          return node;
+  private updateActiveDrawables(): void {
+    this.activeDrawables = [];
+    for (const d of this.drawables) {
+      if (
+        this.cursor &&
+        d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
+        !this.activeDrawables.includes(d)
+      ) {
+        if (d.onHover) {
+          d.onHover();
         }
+        this.activeDrawables.push(d);
       }
     }
-    return;
+    if (this.activeDrawables.length > 0) {
+      this.visual_canvas?.setCursor('pointer');
+    } else {
+      this.visual_canvas?.setCursor('default');
+    }
   }
 
   private add_click_handler(): void {
     this.visual_canvas?.on('click', ({ layerX, layerY }) => {
-      if (!this.event_listeners.length) return;
-
-      const clickedNode = this.detect_node_cursor_collision(layerX, layerY);
-      if (clickedNode) {
-        this.event_listeners
-          .filter((e) => e.event === 'nodeClick')
-          .forEach((c) => c.callback(clickedNode as RenderableNode));
+      for (const d of this.drawables) {
+        if (d.isActive({ x: layerX, y: layerY }, this.zoomer) && d.onClick) {
+          d.onClick();
+        }
       }
     });
   }
 
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
-      const hoverNode = this.detect_node_cursor_collision(offsetX, offsetY);
-      if (hoverNode) {
-        if (this.activeNode != hoverNode) {
-          this.activeNode = hoverNode;
-          this.redraw();
-          this.visual_canvas?.setCursor('pointer');
-        }
-      } else {
-        if (this.activeNode != undefined) {
-          this.activeNode = undefined;
-          this.redraw();
-        }
-        this.visual_canvas?.setCursor('default');
-      }
+      this.cursor = { x: offsetX, y: offsetY };
+      this.updateActiveDrawables();
+      this.redraw();
     });
   }
 }

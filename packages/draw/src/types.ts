@@ -1,15 +1,13 @@
 import type { Node } from '@mindgraph/types';
 import { SimulationNodeDatum } from 'd3-force';
 
-export type RenderableNode = {
+export type Circle = {
   x?: number;
   y?: number;
   radius: number;
-  id: string;
-  text: string;
 };
 
-export type RenderableLink = {
+export type Line = {
   source: {
     x?: number;
     y?: number;
@@ -21,10 +19,6 @@ export type RenderableLink = {
 };
 
 export type SimulationNode = SimulationNodeDatum & Node;
-
-export type NodeClickCallback<TReturn = void> = (
-  node: RenderableNode,
-) => TReturn;
 
 export type MindGraphEvent = 'nodeClick';
 
