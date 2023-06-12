@@ -73,7 +73,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data: GraphData = await fetch('/api/notes').then((response) =>
       response.json(),
     );
-    const mg: MindGraph = new MindGraph({ data, canvas });
+    const mg: MindGraph = new MindGraph({
+      data,
+      canvas,
+    });
     mg.onClick((node) => alert(node.id));
     mg.draw();
   } catch (error) {

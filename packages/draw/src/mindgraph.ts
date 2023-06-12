@@ -3,7 +3,8 @@ import { Artist } from './artist';
 import { Drawable } from './canvas';
 import { RenderableLink, RenderableNode } from './renderables';
 import { Simulation } from './simulation';
-import { SimulationNode } from './types';
+import { GraphSimulationConfig, SimulationNode } from './types';
+import { Styles } from './style';
 
 export type NodeClickCallback = (node: SimulationNode) => void;
 
@@ -15,15 +16,20 @@ export class MindGraph {
   public constructor({
     data,
     canvas,
+    styles,
+    simulationConfig,
   }: {
     data: GraphData;
     canvas: HTMLCanvasElement;
+    styles?: Partial<Styles>;
+    simulationConfig?: Partial<GraphSimulationConfig>;
   }) {
     this.artist = new Artist({
       style: {
         nodeColor: '#01b0d3',
         linkColor: '#01586a',
         titleColor: '#ffffff',
+        ...styles,
       },
       canvas,
     });
@@ -32,6 +38,7 @@ export class MindGraph {
       data,
       simulationConfig: {
         randomizeStartingPoints: true,
+        ...simulationConfig,
       },
       width: this.artist.canvasInitialWidth,
       height: this.artist.canvasInitialHeight,
