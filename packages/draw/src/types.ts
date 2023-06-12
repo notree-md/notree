@@ -1,11 +1,24 @@
-import type { GraphData } from '@mindgraph/types';
+import type { Node } from '@mindgraph/types';
 import { SimulationNodeDatum } from 'd3-force';
 
-export type SimulationNode = SimulationNodeDatum & GraphData['nodes'][0];
+export type Circle = {
+  x?: number;
+  y?: number;
+  radius: number;
+};
 
-export type NodeClickCallback<TReturn = void> = (
-  node: SimulationNode,
-) => TReturn;
+export type Line = {
+  source: {
+    x?: number;
+    y?: number;
+  };
+  target: {
+    x?: number;
+    y?: number;
+  };
+};
+
+export type SimulationNode = SimulationNodeDatum & Node;
 
 export type MindGraphEvent = 'nodeClick';
 
@@ -18,13 +31,15 @@ export type GraphStyleConfig = {
   activeLinkColor: string;
   titleColor: string;
   nodeTitlePadding: number;
+  activeNodeTitlePadding: number;
+  activeNodeRadiusPadding: number;
   minimumNodeSize: number;
   nodeScaleFactor: number;
+  minZoom: number;
+  maxZoom: number;
 };
 
 export type GraphSimulationConfig = {
-  minZoom: number;
-  maxZoom: number;
   chargeStrength: number;
   centerStrength: number;
   linkStrength: number;
@@ -35,8 +50,6 @@ export type GraphSimulationConfig = {
 };
 
 export interface MindGraphConfig {
-  data: GraphData;
   style?: Partial<GraphStyleConfig>;
-  simulationConfig?: Partial<GraphSimulationConfig>;
   canvas: HTMLCanvasElement;
 }

@@ -1,6 +1,6 @@
 import { GraphData } from '@mindgraph/types';
 import { map } from 'd3-array';
-import { GraphSimulationConfig, SimulationNode } from '../types';
+import { GraphSimulationConfig, SimulationNode } from './types';
 import {
   SimulationNodeDatum,
   forceSimulation,
@@ -9,9 +9,6 @@ import {
   forceLink,
   Simulation as D3Simulation,
 } from 'd3-force';
-import { Styles } from '../style';
-import { SvgElements } from './svg';
-import { select } from 'd3-selection';
 
 export type ConfiguredSimulationLink = SimulationNodeDatum & {
   source: SimulationNode;
@@ -20,7 +17,8 @@ export type ConfiguredSimulationLink = SimulationNodeDatum & {
 
 export interface MindGraphSimulationArgs {
   data: GraphData;
-  styles: Styles;
+  width: number;
+  height: number;
   simulationConfig?: Partial<GraphSimulationConfig>;
 }
 
@@ -32,7 +30,8 @@ export class Simulation {
   constructor({
     data: { nodes, links },
     simulationConfig,
-    styles,
+    width,
+    height,
   }: MindGraphSimulationArgs) {
     this.nodes = map(nodes, merge_node_datum);
     this.links = map(
@@ -43,37 +42,21 @@ export class Simulation {
       ...default_simulation_config,
       ...simulationConfig,
     };
-    this.simulation = this.build({
-      width: styles.width,
-      height: styles.height,
-    });
-    this.inMemoryRendering = new SvgElements(this, styles);
+    this.simulation = this.build({ width, height });
   }
 
-  public start(observers?: (() => void)[]): void {
+  public start(
+    observers?: ((
+      nodes: SimulationNode[],
+      links: ConfiguredSimulationLink[],
+    ) => void)[],
+  ): void {
     this.simulation.on('tick', () => {
-      this.inMemoryRendering.nextFrame();
-      observers?.forEach((f) => f());
+      observers?.forEach((f) => f(this.nodes, this.links));
     });
-  }
-
-  public renderedLinks() {
-    return this.inMemoryRendering.links;
-  }
-
-  public renderedNodes() {
-    const nodes: (SimulationNode & { r: number })[] = [];
-
-    // TODO: can you get the radius without this?
-    this.inMemoryRendering.nodes.each(function (n) {
-      nodes.push({ ...n, r: Number(select(this).attr('r')) });
-    });
-
-    return nodes;
   }
 
   private simulation: D3Simulation<SimulationNode, undefined>;
-  private inMemoryRendering: SvgElements;
 
   private build({
     width,
@@ -145,8 +128,6 @@ const empty_node_datum = {
 };
 
 const default_simulation_config: GraphSimulationConfig = {
-  minZoom: 0.4,
-  maxZoom: 16,
   chargeStrength: -400,
   centerStrength: 0.28,
   linkStrength: 0.06,
