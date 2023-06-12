@@ -1,6 +1,6 @@
 import { Canvas, Drawable } from './canvas';
 import { NodeClickCallback } from './mindgraph';
-import { ConfiguredSimulationLink } from './simulation/simulation';
+import { ConfiguredSimulationLink } from './simulation';
 import { Styles } from './style';
 import { SimulationNode, Circle } from './types';
 import { Zoomer } from './zoomer';

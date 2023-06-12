@@ -1,6 +1,6 @@
 import { GraphData } from '@mindgraph/types';
 import { map } from 'd3-array';
-import { GraphSimulationConfig, SimulationNode } from '../types';
+import { GraphSimulationConfig, SimulationNode } from './types';
 import {
   SimulationNodeDatum,
   forceSimulation,
