@@ -3,6 +3,7 @@ import { Artist } from '../src/index';
 import { Simulation } from '../src/simulation';
 import { Canvas, Drawable } from '../src/canvas';
 import { RenderableNode, RenderableLink } from '../src/renderables';
+import { MindGraph } from '../src/mindgraph';
 import { Zoomer } from '../src/zoomer';
 import { SimulationNode } from '../src/types';
 
@@ -72,42 +73,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data: GraphData = await fetch('/api/notes').then((response) =>
       response.json(),
     );
-
-    const artist = new Artist({
-      style: {
-        nodeColor: '#01b0d3',
-        linkColor: '#01586a',
-        titleColor: '#ffffff',
-      },
-      canvas,
-    });
-
-    const simulation = new Simulation({
-      data,
-      simulationConfig: {
-        randomizeStartingPoints: false,
-      },
-      width: artist.canvasInitialWidth,
-      height: artist.canvasInitialHeight,
-    });
-
-    simulation.start([
-      (nodes, links) => {
-        let d = links.map<Drawable>(
-          (l) => new RenderableLink(l, artist.getStyles()),
-        );
-        d = d.concat(
-          nodes.map((n, i) => {
-            if (i % 2 == 0) {
-              return new RenderableNode(n, artist.getStyles()) as Drawable;
-            } else {
-              return new NodeTriangle(n);
-            }
-          }),
-        );
-        artist.draw(d);
-      },
-    ]);
+    const mg: MindGraph = new MindGraph({ data, canvas });
+    mg.onClick((node) => alert(node.id));
+    mg.draw();
   } catch (error) {
     alert(error);
   }

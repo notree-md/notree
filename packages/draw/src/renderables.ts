@@ -1,4 +1,5 @@
 import { Canvas, Drawable } from './canvas';
+import { NodeClickCallback } from './mindgraph';
 import { ConfiguredSimulationLink } from './simulation/simulation';
 import { Styles } from './style';
 import { SimulationNode, Circle } from './types';
@@ -41,10 +42,16 @@ export class RenderableNode implements Drawable {
   private simNode: SimulationNode;
   private circle: Circle;
   private styles: Styles;
+  private callback: NodeClickCallback | undefined;
 
-  public constructor(simNode: SimulationNode, styles: Styles) {
+  public constructor(
+    simNode: SimulationNode,
+    styles: Styles,
+    callback?: NodeClickCallback,
+  ) {
     this.simNode = simNode;
     this.styles = styles;
+    this.callback = callback;
     this.circle = {
       x: this.simNode.x,
       y: this.simNode.y,
@@ -55,11 +62,9 @@ export class RenderableNode implements Drawable {
   }
 
   onClick() {
-    console.log(this.simNode);
-  }
-
-  onHover(): void {
-    console.log(this.simNode);
+    if (this.callback) {
+      this.callback(this.simNode);
+    }
   }
 
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
