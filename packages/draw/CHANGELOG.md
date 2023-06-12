@@ -1,5 +1,12 @@
 # @mindgraph/draw
 
+## 0.7.0
+
+### Minor Changes
+
+- 0418009: Handling of various canvas sizes
+- 2e3e617: New top level class for users: MindGraph
+
 ## 0.6.1
 
 ### Patch Changes
