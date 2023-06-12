@@ -9,10 +9,6 @@ import { Styles } from './style';
 export type NodeClickCallback = (node: SimulationNode) => void;
 
 export class MindGraph {
-  private simulation: Simulation;
-  private artist: Artist;
-  private callback: NodeClickCallback | undefined;
-
   public constructor({
     data,
     canvas,
@@ -70,4 +66,8 @@ export class MindGraph {
       },
     ]);
   }
+
+  private simulation: Simulation;
+  private artist: Artist;
+  private callback: NodeClickCallback | undefined;
 }
