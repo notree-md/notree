@@ -54,18 +54,17 @@ export class MindGraph {
   public draw() {
     this.simulation.start([
       (nodes, links) => {
-        let d = links.map<Drawable>(
-          (l) => new RenderableLink(l, this.artist.getStyles()),
-        );
-        d = d.concat(
-          nodes.map((n) => {
-            return new RenderableNode(
-              n,
-              this.artist.getStyles(),
-              this.callback,
-            );
-          }),
-        );
+        const d = links
+          .map<Drawable>((l) => new RenderableLink(l, this.artist.getStyles()))
+          .concat(
+            nodes.map((n) => {
+              return new RenderableNode(
+                n,
+                this.artist.getStyles(),
+                this.callback,
+              );
+            }),
+          );
         this.artist.draw(d);
       },
     ]);
