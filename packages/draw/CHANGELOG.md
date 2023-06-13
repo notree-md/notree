@@ -1,5 +1,11 @@
 # @mindgraph/draw
 
+## 0.7.1
+
+### Patch Changes
+
+- fix build
+
 ## 0.7.0
 
 ### Minor Changes
