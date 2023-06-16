@@ -3,7 +3,7 @@ import { NodeClickEvent, Line, Circle } from './types';
 import { Zoomer } from './zoomer';
 
 export interface Drawable {
-  draw(canvas: Canvas, isActive?: boolean, isAnythingActive?: boolean): void;
+  draw(canvas: Canvas, highlight: 'active' | 'dimmed' | 'normal'): void;
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
   onClick?(): void;
   onHover?(): void;
@@ -123,7 +123,12 @@ export class Canvas {
     this.context.scale(zoomer.k, zoomer.k);
 
     drawables.forEach((d) => {
-      d.draw(this, activeDrawables.includes(d), activeDrawables.length > 0);
+      const highlight = activeDrawables.includes(d)
+        ? 'active'
+        : activeDrawables.length > 0
+        ? 'dimmed'
+        : 'normal';
+      d.draw(this, highlight);
     });
 
     this.context.restore();
