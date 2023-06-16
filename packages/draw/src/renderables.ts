@@ -4,18 +4,25 @@ import { ConfiguredSimulationLink } from './simulation';
 import { Styles } from './style';
 import { SimulationNode, Circle } from './types';
 import { Zoomer } from './zoomer';
+import { Animation } from './animation';
 
 function between(min: number, max: number, val: number): boolean {
   return val >= min && val <= max;
 }
 
+const ANIMATION_TIME = 0.5;
+
 export class RenderableLink implements Drawable {
   private simLink: ConfiguredSimulationLink;
   private styles: Styles;
+  private currentLinkColor: string;
+  private animation: Animation<string> | undefined;
 
   public constructor(simLink: ConfiguredSimulationLink, styles: Styles) {
     this.simLink = simLink;
     this.styles = styles;
+    this.currentLinkColor = this.styles.linkColor;
+    this.animation = undefined;
   }
 
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
@@ -36,7 +43,24 @@ export class RenderableLink implements Drawable {
       dimmed: this.styles.dimmedLinkColor,
       normal: this.styles.linkColor,
     };
-    canvas.drawLine(line, highlightMap[highlight]);
+
+    const desiredColor = highlightMap[highlight];
+    if (desiredColor != this.currentLinkColor) {
+      if (
+        this.animation === undefined ||
+        this.animation.state.desired != desiredColor
+      ) {
+        this.animation = new Animation({
+          from: this.currentLinkColor,
+          to: desiredColor,
+          easing: 'linear',
+          duration: ANIMATION_TIME,
+        });
+      } else {
+        this.currentLinkColor = this.animation.getValue();
+      }
+    }
+    canvas.drawLine(line, this.currentLinkColor);
   }
 }
 
@@ -45,6 +69,8 @@ export class RenderableNode implements Drawable {
   private circle: Circle;
   private styles: Styles;
   private callback: NodeClickCallback | undefined;
+  private currentNodeColor: string;
+  private animation: Animation<string> | undefined;
 
   public constructor(
     simNode: SimulationNode,
@@ -54,6 +80,8 @@ export class RenderableNode implements Drawable {
     this.simNode = simNode;
     this.styles = styles;
     this.callback = callback;
+    this.animation = undefined;
+    this.currentNodeColor = this.styles.nodeColor;
     this.circle = {
       x: this.simNode.x,
       y: this.simNode.y,
@@ -103,14 +131,36 @@ export class RenderableNode implements Drawable {
       dimmed: this.styles.dimmedNodeColor,
       normal: this.styles.nodeColor,
     };
+
+    const desiredColor = highlightMap[highlight];
+    if (desiredColor != this.currentNodeColor) {
+      if (
+        this.animation === undefined ||
+        this.animation.state.desired != desiredColor
+      ) {
+        this.animation = new Animation({
+          from: this.currentNodeColor,
+          to: desiredColor,
+          easing: 'easein',
+          duration: ANIMATION_TIME,
+        });
+      } else {
+        this.currentNodeColor = this.animation.getValue();
+      }
+    }
+
     const textColor = this.styles.titleColor;
     const textPadding =
       highlight === 'active'
         ? this.styles.activeNodeTitlePadding
         : this.styles.nodeTitlePadding;
     canvas.drawCircle(
-      { ...this.circle, radius: this.circle.radius + radiusPadding },
-      highlightMap[highlight],
+      {
+        x: this.simNode.x,
+        y: this.simNode.y,
+        radius: this.circle.radius + radiusPadding,
+      },
+      this.currentNodeColor,
       {
         text: text,
         textColor: textColor,
