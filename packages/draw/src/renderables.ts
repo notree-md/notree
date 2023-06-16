@@ -26,13 +26,15 @@ export class RenderableLink implements Drawable {
     );
   }
 
-  draw(canvas: Canvas, isActive: boolean): void {
+  draw(canvas: Canvas, isActive: boolean, isAnythingActive: boolean): void {
     const line = {
       source: this.simLink.source,
       target: this.simLink.target,
     };
     const lineColor = isActive
       ? this.styles.activeLinkColor
+      : isAnythingActive
+      ? this.styles.dimmedLinkColor
       : this.styles.linkColor;
     canvas.drawLine(line, lineColor);
   }
@@ -92,11 +94,13 @@ export class RenderableNode implements Drawable {
     return false;
   }
 
-  draw(canvas: Canvas, isActive: boolean): void {
+  draw(canvas: Canvas, isActive: boolean, isAnythingActive: boolean): void {
     const radiusPadding = isActive ? this.styles.activeNodeRadiusPadding : 0;
     const text = this.simNode.name.split('.md')[0];
     const circleColor = isActive
       ? this.styles.activeNodeColor
+      : isAnythingActive
+      ? this.styles.dimmedNodeColor
       : this.styles.nodeColor;
     const textColor = this.styles.titleColor;
     const textPadding = isActive
