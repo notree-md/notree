@@ -6,8 +6,10 @@ export interface Styles {
   deviceScale: number;
   nodeColor: string;
   activeNodeColor: string;
+  dimmedNodeColor: string;
   linkColor: string;
   activeLinkColor: string;
+  dimmedLinkColor: string;
   titleColor: string;
   nodeTitlePadding: number;
   activeNodeTitlePadding: number;
@@ -65,10 +67,12 @@ export function isSSR(): boolean {
 const default_styles: GraphStyleConfig = {
   minZoom: 0.4,
   maxZoom: 16,
-  nodeColor: 'red',
+  nodeColor: '#01b0d3',
   activeNodeColor: 'white',
-  linkColor: 'blue',
+  dimmedNodeColor: '#01414e',
+  linkColor: '#01586a',
   activeLinkColor: 'white',
+  dimmedLinkColor: '#01414e',
   titleColor: 'green',
   nodeTitlePadding: 12,
   activeNodeTitlePadding: 14,
