@@ -7,7 +7,7 @@ type AnimationState<T extends AnimateableProperty> = {
   desired: T;
 };
 
-type Easing = 'linear' | 'easein';
+export type Easing = 'linear' | 'easein' | 'flip' | 'easeout';
 
 // from: https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -28,6 +28,22 @@ function componentToHex(c: number) {
 
 function rgbToHex(r: number, g: number, b: number) {
   return '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+function linear(per: number) {
+  return per;
+}
+
+function easeIn(per: number) {
+  return per * per;
+}
+
+function flip(per: number) {
+  return 1 - per;
+}
+
+function easeOut(per: number) {
+  return flip(flip(per) ** 2);
 }
 
 export class Animation<T extends AnimateableProperty> {
@@ -52,16 +68,8 @@ export class Animation<T extends AnimateableProperty> {
     this.startTime = new Date().getTime();
   }
 
-  private linear(per: number) {
-    return per;
-  }
-
-  private easeIn(per: number) {
-    return per * per;
-  }
-
   private numericLerp(start: number, finish: number, percentage: number) {
-    return start + (finish - start) * percentage * percentage * percentage;
+    return start + (finish - start) * percentage;
   }
 
   public getValue(): T {
@@ -71,15 +79,22 @@ export class Animation<T extends AnimateableProperty> {
     let easingFunc: (x: number) => number;
     switch (this.easing) {
       case 'linear':
-        easingFunc = this.linear;
+        easingFunc = linear;
         break;
       case 'easein':
-        easingFunc = this.easeIn;
+        easingFunc = easeIn;
+        break;
+      case 'flip':
+        easingFunc = flip;
+        break;
+      case 'easeout':
+        easingFunc = easeOut;
         break;
     }
 
-    const easingFunctionApplied = easingFunc(elapsedTime / this.duration);
-    const animationPercentage = Math.min(1, easingFunctionApplied);
+    const animationPercentage = easingFunc(
+      Math.min(1, elapsedTime / this.duration),
+    );
     if (typeof this.state.initial == 'number') {
       return this.numericLerp(
         this.state.initial,

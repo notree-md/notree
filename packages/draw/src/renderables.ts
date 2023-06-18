@@ -10,7 +10,7 @@ function between(min: number, max: number, val: number): boolean {
   return val >= min && val <= max;
 }
 
-const ANIMATION_TIME = 0.5;
+const ANIMATION_TIME = 0.2;
 
 export class RenderableLink implements Drawable {
   private simLink: ConfiguredSimulationLink;
