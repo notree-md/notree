@@ -1,12 +1,10 @@
 import { GraphData } from '@mindgraph/types';
 import { Artist } from './artist';
-import { Canvas, Drawable } from './canvas';
+import { Drawable } from './canvas';
 import { RenderableLink, RenderableNode } from './renderables';
 import { ConfiguredSimulationLink, Simulation } from './simulation';
 import { GraphSimulationConfig, SimulationNode } from './types';
 import { Styles } from './style';
-import { Zoomer } from './zoomer';
-import { Animation, Easing } from './animation';
 
 export type NodeClickCallback = (node: SimulationNode) => void;
 
@@ -81,12 +79,14 @@ export class MindGraph {
             this.nodeToDrawableMap.set(node, newRenderable);
           }
         }
-        this.artist.draw(this.drawables);
       },
     ]);
-    setInterval(() => {
-      this.artist.draw(this.drawables);
-    }, 100);
+    this.render();
+  }
+
+  private render() {
+    this.artist.draw(this.drawables);
+    window.requestAnimationFrame(() => this.render());
   }
 
   private simulation: Simulation;

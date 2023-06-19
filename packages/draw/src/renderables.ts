@@ -10,7 +10,7 @@ function between(min: number, max: number, val: number): boolean {
   return val >= min && val <= max;
 }
 
-const ANIMATION_TIME = 0.2;
+const ANIMATION_TIME = 0.3;
 
 export class RenderableLink implements Drawable {
   private simLink: ConfiguredSimulationLink;
@@ -53,7 +53,7 @@ export class RenderableLink implements Drawable {
         this.animation = new Animation({
           from: this.currentLinkColor,
           to: desiredColor,
-          easing: 'linear',
+          easing: 'easeout',
           duration: ANIMATION_TIME,
         });
       } else {
@@ -141,7 +141,7 @@ export class RenderableNode implements Drawable {
         this.animation = new Animation({
           from: this.currentNodeColor,
           to: desiredColor,
-          easing: 'easein',
+          easing: 'easeout',
           duration: ANIMATION_TIME,
         });
       } else {
