@@ -10,8 +10,6 @@ function between(min: number, max: number, val: number): boolean {
   return val >= min && val <= max;
 }
 
-const ANIMATION_TIME = 0.3;
-
 export class RenderableLink implements Drawable {
   private simLink: ConfiguredSimulationLink;
   private styles: Styles;
@@ -54,7 +52,7 @@ export class RenderableLink implements Drawable {
           from: this.currentLinkColor,
           to: desiredColor,
           easing: 'easeout',
-          duration: ANIMATION_TIME,
+          duration: this.styles.hoverAnimationDuration,
         });
       } else {
         this.currentLinkColor = this.animation.getValue();
@@ -142,7 +140,7 @@ export class RenderableNode implements Drawable {
           from: this.currentNodeColor,
           to: desiredColor,
           easing: 'easeout',
-          duration: ANIMATION_TIME,
+          duration: this.styles.hoverAnimationDuration,
         });
       } else {
         this.currentNodeColor = this.animation.getValue();

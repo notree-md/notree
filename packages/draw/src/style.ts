@@ -11,6 +11,7 @@ export interface Styles {
   activeLinkColor: string;
   dimmedLinkColor: string;
   titleColor: string;
+  hoverAnimationDuration: number;
   nodeTitlePadding: number;
   activeNodeTitlePadding: number;
   activeNodeRadiusPadding: number;
@@ -51,6 +52,7 @@ export function isSSR(): boolean {
 const default_styles: GraphStyleConfig = {
   minZoom: 0.4,
   maxZoom: 16,
+  hoverAnimationDuration: 0.3,
   nodeColor: '#01b0d3',
   activeNodeColor: '#ffffff',
   dimmedNodeColor: '#01414e',
