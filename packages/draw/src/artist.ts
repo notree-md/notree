@@ -75,7 +75,6 @@ export class Artist {
         height: this.styles.height,
         minZoom: this.styles.minZoom,
         maxZoom: this.styles.maxZoom,
-        observers: [],
       }),
     );
   }
