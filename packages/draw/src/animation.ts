@@ -86,9 +86,11 @@ export class Animation<T extends AnimateableProperty> {
         easingFunc = easeOut;
         break;
       default:
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-case-declarations
-        const __exhaustiveCase: never = this.easing;
-        throw new Error('Not all easing functions are handled');
+        // eslint-disable-next-line no-case-declarations
+        const exhaustiveCase: never = this.easing;
+        throw new Error(
+          `Not all easing functions are handled ${exhaustiveCase}`,
+        );
     }
 
     const animationPercentage = easingFunc(
