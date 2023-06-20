@@ -16,6 +16,7 @@ export interface MindGraphArgs {
 export class MindGraph {
   constructor({ data, canvas, styles, simulationConfig }: MindGraphArgs) {
     this.drawables = [];
+    this.callback = undefined;
 
     this.artist = new Artist({
       style: styles,
@@ -31,8 +32,6 @@ export class MindGraph {
       width: this.artist.canvasInitialWidth,
       height: this.artist.canvasInitialHeight,
     });
-
-    this.callback = undefined;
   }
 
   public onClick(callback: NodeClickCallback | undefined) {
@@ -56,6 +55,7 @@ export class MindGraph {
       this.drawables.push(newRenderable);
     }
 
+    this.artist.makeInteractive();
     this.render();
   }
 

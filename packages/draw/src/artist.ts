@@ -6,9 +6,9 @@ import { MindGraphConfig } from './types';
 export class Artist {
   public readonly canvasInitialWidth: number;
   public readonly canvasInitialHeight: number;
+  public readonly styles: Styles;
 
   constructor({ style, canvas }: MindGraphConfig) {
-    this.canvasElement = canvas;
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
     this.canvasInitialHeight = canvas.getBoundingClientRect().height;
 
@@ -18,23 +18,21 @@ export class Artist {
       this.canvasInitialHeight,
     );
 
-    this.visual_canvas = new Canvas(
-      this.canvasElement,
-      this.styles.deviceScale,
-    );
-
+    this.visual_canvas = new Canvas(canvas, this.styles.deviceScale);
     this.zoomer = new Zoomer();
-    this.drawables = [];
-    this.activeDrawables = [];
 
-    this.add_window_resize_listener();
-    this.add_zoom_listener();
-    this.add_click_handler();
-    this.add_mousemove_handler();
-  }
-
-  public getStyles(): Styles {
-    return this.styles;
+    this.layers = [
+      {
+        id: 'active',
+        drawables: [],
+        canvas: new Canvas(undefined, this.styles.deviceScale),
+      },
+      {
+        id: 'standard',
+        drawables: [],
+        canvas: new Canvas(undefined, this.styles.deviceScale),
+      },
+    ];
   }
 
   public draw(drawables: Drawable[]): void {
@@ -43,6 +41,18 @@ export class Artist {
     this.redraw();
   }
 
+  public makeInteractive(): void {
+    this.add_window_resize_listener();
+    this.add_zoom_listener();
+    this.add_click_handler();
+    this.add_mousemove_handler();
+  }
+
+  private visual_canvas: Canvas | undefined;
+  private cursor: { x: number; y: number } | undefined;
+  private zoomer: Zoomer;
+  private layers: Layer[];
+
   private redraw(): void {
     this.updateActiveDrawables();
     this.visual_canvas?.drawFrame({
@@ -50,33 +60,6 @@ export class Artist {
       drawables: this.drawables,
       activeDrawables: this.activeDrawables,
     });
-  }
-
-  private canvasElement: HTMLCanvasElement;
-  private visual_canvas: Canvas | undefined;
-  private cursor: { x: number; y: number } | undefined;
-  private styles: Styles;
-  private zoomer: Zoomer;
-  private activeDrawables: Drawable[];
-  private drawables: Drawable[];
-
-  private add_window_resize_listener(): void {
-    if (isSSR()) return;
-
-    window.addEventListener('resize', () => {
-      this.visual_canvas?.resizeCanvas();
-    });
-  }
-
-  private add_zoom_listener(): void {
-    this.visual_canvas?.call(
-      this.zoomer.configureZoomArea<HTMLCanvasElement>({
-        width: this.styles.width,
-        height: this.styles.height,
-        minZoom: this.styles.minZoom,
-        maxZoom: this.styles.maxZoom,
-      }),
-    );
   }
 
   private updateActiveDrawables(): void {
@@ -100,6 +83,25 @@ export class Artist {
     }
   }
 
+  private add_window_resize_listener(): void {
+    if (isSSR()) return;
+
+    window.addEventListener('resize', () => {
+      this.visual_canvas?.resizeCanvas();
+    });
+  }
+
+  private add_zoom_listener(): void {
+    this.visual_canvas?.call(
+      this.zoomer.configureZoomArea<HTMLCanvasElement>({
+        width: this.styles.width,
+        height: this.styles.height,
+        minZoom: this.styles.minZoom,
+        maxZoom: this.styles.maxZoom,
+      }),
+    );
+  }
+
   private add_click_handler(): void {
     this.visual_canvas?.on('click', ({ layerX, layerY }) => {
       for (const d of this.drawables) {
@@ -116,4 +118,10 @@ export class Artist {
       this.updateActiveDrawables();
     });
   }
+}
+
+interface Layer {
+  id: string;
+  drawables: Drawable[];
+  canvas: Canvas;
 }
