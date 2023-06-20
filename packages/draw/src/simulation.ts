@@ -33,18 +33,9 @@ export class Simulation {
       ...default_simulation_config,
       ...simulationConfig,
     };
-    this.simulation = this.build({ width, height });
-  }
 
-  public start(
-    observers?: ((nodes: SimulationNode[], links: SimulationLink[]) => void)[],
-  ): void {
-    this.simulation.on('tick', () => {
-      observers?.forEach((f) => f(this.nodes, this.links));
-    });
+    this.build({ width, height });
   }
-
-  private simulation: D3Simulation<SimulationNode, undefined>;
 
   private build({
     width,
