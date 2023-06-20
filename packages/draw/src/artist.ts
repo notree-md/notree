@@ -21,6 +21,7 @@ export class Artist {
     this.visual_canvas = new Canvas(canvas, this.styles.deviceScale);
     this.zoomer = new Zoomer();
 
+    this.drawables = [];
     this.layers = [
       {
         id: 'active',
@@ -28,7 +29,7 @@ export class Artist {
         canvas: new Canvas(undefined, this.styles.deviceScale),
       },
       {
-        id: 'standard',
+        id: 'base',
         drawables: [],
         canvas: new Canvas(undefined, this.styles.deviceScale),
       },
@@ -37,6 +38,7 @@ export class Artist {
 
   public draw(drawables: Drawable[]): void {
     if (isSSR()) return;
+
     this.drawables = drawables;
     this.redraw();
   }
@@ -51,10 +53,11 @@ export class Artist {
   private visual_canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
+  private drawables: Drawable[];
   private layers: Layer[];
 
   private redraw(): void {
-    this.updateActiveDrawables();
+    this.distributeDrawablesToLayers();
     this.visual_canvas?.drawFrame({
       zoomer: this.zoomer,
       drawables: this.drawables,
@@ -62,20 +65,23 @@ export class Artist {
     });
   }
 
-  private updateActiveDrawables(): void {
-    this.activeDrawables = [];
+  private distributeDrawablesToLayers(): void {
+    const activeDrawables: Drawable[] = [];
     for (const d of this.drawables) {
       if (
         this.cursor &&
         d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
-        !this.activeDrawables.includes(d)
+        !activeDrawables.includes(d)
       ) {
-        if (d.onHover) {
-          d.onHover();
-        }
-        this.activeDrawables.push(d);
+        activeDrawables.push(d);
       }
     }
+
+    const base = this.layers.find((l) => l.id === 'base');
+    const active = this.layers.find((l) => l.id === 'active');
+
+    base?.drawables = this.drawables.filter(d => !activeDrawables.includes(d));
+
     if (this.activeDrawables.length > 0) {
       this.visual_canvas?.setCursor('pointer');
     } else {
@@ -115,13 +121,13 @@ export class Artist {
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
-      this.updateActiveDrawables();
+      this.distributeDrawablesToLayers();
     });
   }
 }
 
 interface Layer {
-  id: string;
+  id: 'base' | 'active';
   drawables: Drawable[];
   canvas: Canvas;
 }
