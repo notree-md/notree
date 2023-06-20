@@ -1,31 +1,12 @@
-import { GraphStyleConfig } from './types';
+import { Color, GraphStyleConfig } from './types';
 
-export interface Styles {
-  width: number;
-  height: number;
-  deviceScale: number;
-  nodeColor: string;
-  activeNodeColor: string;
-  dimmedNodeColor: string;
-  linkColor: string;
-  activeLinkColor: string;
-  dimmedLinkColor: string;
-  titleColor: string;
-  hoverAnimationDuration: number;
-  nodeTitlePadding: number;
-  activeNodeTitlePadding: number;
-  activeNodeRadiusPadding: number;
-  minimumNodeSize: number;
-  nodeScaleFactor: number;
-  minZoom: number;
-  maxZoom: number;
-}
+export type Styles = ReturnType<typeof createStyles>;
 
 export function createStyles(
   styleConfig: Partial<GraphStyleConfig> | undefined,
   canvasWidth: number,
   canvasHeight: number,
-): Styles {
+) {
   if (isSSR()) {
     return { ...default_styles, width: 0, height: 0, deviceScale: 0 };
   }
@@ -49,17 +30,39 @@ export function isSSR(): boolean {
   return typeof window === 'undefined';
 }
 
+export function colorToRgba({ r, g, b, a = 1 }: Color): string {
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 const default_styles: GraphStyleConfig = {
   minZoom: 0.4,
   maxZoom: 16,
   hoverAnimationDuration: 0.3,
-  nodeColor: '#01b0d3',
-  activeNodeColor: '#ffffff',
-  dimmedNodeColor: '#01414e',
-  linkColor: '#01586a',
-  activeLinkColor: '#ffffff',
-  dimmedLinkColor: '#01414e',
-  titleColor: 'green',
+  nodeColor: {
+    r: 1,
+    g: 176,
+    b: 211,
+  },
+  activeNodeColor: {
+    r: 255,
+    g: 255,
+    b: 255,
+  },
+  linkColor: {
+    r: 1,
+    g: 88,
+    b: 106,
+  },
+  activeLinkColor: {
+    r: 255,
+    g: 255,
+    b: 255,
+  },
+  titleColor: {
+    r: 255,
+    g: 255,
+    b: 255,
+  },
   nodeTitlePadding: 12,
   activeNodeTitlePadding: 14,
   activeNodeRadiusPadding: 1,
