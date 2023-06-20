@@ -65,7 +65,6 @@ export class Artist {
 
     window.addEventListener('resize', () => {
       this.visual_canvas?.resizeCanvas();
-      this.redraw();
     });
   }
 
@@ -76,7 +75,6 @@ export class Artist {
         height: this.styles.height,
         minZoom: this.styles.minZoom,
         maxZoom: this.styles.maxZoom,
-        observers: [() => this.redraw()],
       }),
     );
   }
@@ -116,7 +114,6 @@ export class Artist {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
       this.updateActiveDrawables();
-      this.redraw();
     });
   }
 }

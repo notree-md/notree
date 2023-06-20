@@ -28,6 +28,7 @@ export type GraphStyleConfig = {
   nodeColor: string;
   activeNodeColor: string;
   dimmedNodeColor: string;
+  hoverAnimationDuration: number;
   linkColor: string;
   activeLinkColor: string;
   dimmedLinkColor: string;

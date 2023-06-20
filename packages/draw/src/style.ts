@@ -11,6 +11,7 @@ export interface Styles {
   activeLinkColor: string;
   dimmedLinkColor: string;
   titleColor: string;
+  hoverAnimationDuration: number;
   nodeTitlePadding: number;
   activeNodeTitlePadding: number;
   activeNodeRadiusPadding: number;
@@ -44,22 +45,6 @@ export function createStyles(
   };
 }
 
-export function generateUniqueColors(colorCount: number) {
-  // https://stackoverflow.com/questions/15804149/rgb-color-permutation/15804183#15804183
-  return [...Array(colorCount).keys()].map((i) =>
-    convertRgbArrayToStyle([
-      (i + 1) & 0xff,
-      ((i + 1) & 0xff00) >> 8,
-      ((i + 1) & 0xff0000) >> 16,
-    ]),
-  );
-}
-
-export function convertRgbArrayToStyle(rgbArray: number[]) {
-  if (rgbArray[3] && rgbArray[3] !== 255) return '';
-  return `rgb(${rgbArray.slice(0, 3).join(',')})`;
-}
-
 export function isSSR(): boolean {
   return typeof window === 'undefined';
 }
@@ -67,11 +52,12 @@ export function isSSR(): boolean {
 const default_styles: GraphStyleConfig = {
   minZoom: 0.4,
   maxZoom: 16,
+  hoverAnimationDuration: 0.3,
   nodeColor: '#01b0d3',
-  activeNodeColor: 'white',
+  activeNodeColor: '#ffffff',
   dimmedNodeColor: '#01414e',
   linkColor: '#01586a',
-  activeLinkColor: 'white',
+  activeLinkColor: '#ffffff',
   dimmedLinkColor: '#01414e',
   titleColor: 'green',
   nodeTitlePadding: 12,
