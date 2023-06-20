@@ -54,4 +54,3 @@ describe your changes.
 
 GitHub will run your changes through a ci pipeline, but you can see if it will
 pass locally by running `pnpm ci`.
-
