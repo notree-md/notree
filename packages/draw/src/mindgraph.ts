@@ -2,13 +2,17 @@ import { GraphData } from '@mindgraph/types';
 import { Artist } from './artist';
 import { Drawable } from './canvas';
 import { RenderableLink, RenderableNode } from './renderables';
-import { Simulation } from './simulation';
+import { ConfiguredSimulationLink, Simulation } from './simulation';
 import { GraphSimulationConfig, SimulationNode } from './types';
 import { Styles } from './style';
 
 export type NodeClickCallback = (node: SimulationNode) => void;
 
 export class MindGraph {
+  private nodeToDrawableMap: Map<SimulationNode, RenderableNode>;
+  private linkToDrawableMap: Map<ConfiguredSimulationLink, RenderableLink>;
+  private drawables: Drawable[];
+
   public constructor({
     data,
     canvas,
@@ -20,6 +24,10 @@ export class MindGraph {
     styles?: Partial<Styles>;
     simulationConfig?: Partial<GraphSimulationConfig>;
   }) {
+    this.nodeToDrawableMap = new Map();
+    this.linkToDrawableMap = new Map();
+    this.drawables = [];
+
     this.artist = new Artist({
       style: {
         nodeColor: '#01b0d3',
@@ -50,20 +58,35 @@ export class MindGraph {
   public draw() {
     this.simulation.start([
       (nodes, links) => {
-        const d = links
-          .map<Drawable>((l) => new RenderableLink(l, this.artist.getStyles()))
-          .concat(
-            nodes.map((n) => {
-              return new RenderableNode(
-                n,
-                this.artist.getStyles(),
-                this.callback,
-              );
-            }),
-          );
-        this.artist.draw(d);
+        for (const link of links) {
+          if (!this.linkToDrawableMap.has(link)) {
+            const newRenderableLink = new RenderableLink(
+              link,
+              this.artist.getStyles(),
+            );
+            this.drawables.push(newRenderableLink);
+            this.linkToDrawableMap.set(link, newRenderableLink);
+          }
+        }
+        for (const node of nodes) {
+          if (!this.nodeToDrawableMap.has(node)) {
+            const newRenderable = new RenderableNode(
+              node,
+              this.artist.getStyles(),
+              this.callback,
+            );
+            this.drawables.push(newRenderable);
+            this.nodeToDrawableMap.set(node, newRenderable);
+          }
+        }
       },
     ]);
+    this.render();
+  }
+
+  private render() {
+    this.artist.draw(this.drawables);
+    window.requestAnimationFrame(() => this.render());
   }
 
   private simulation: Simulation;
