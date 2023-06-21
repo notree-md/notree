@@ -40,16 +40,13 @@ export class MindGraph {
 
   public draw() {
     for (const link of this.simulation.links) {
-      const newRenderableLink = new RenderableLink(
-        link,
-        this.artist.getStyles(),
-      );
+      const newRenderableLink = new RenderableLink(link, this.artist.styles);
       this.drawables.push(newRenderableLink);
     }
     for (const node of this.simulation.nodes) {
       const newRenderable = new RenderableNode(
         node,
-        this.artist.getStyles(),
+        this.artist.styles,
         this.callback,
       );
       this.drawables.push(newRenderable);

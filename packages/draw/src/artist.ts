@@ -22,18 +22,14 @@ export class Artist {
     this.zoomer = new Zoomer();
 
     this.drawables = [];
-    this.layers = [
-      {
-        id: 'active',
-        drawables: [],
-        canvas: new Canvas(undefined, this.styles.deviceScale),
-      },
-      {
-        id: 'base',
-        drawables: [],
-        canvas: new Canvas(undefined, this.styles.deviceScale),
-      },
-    ];
+    this.baseLayer = {
+      drawables: [],
+      canvas: new Canvas(undefined),
+    };
+    this.activeLayer = {
+      drawables: [],
+      canvas: new Canvas(undefined),
+    };
   }
 
   public draw(drawables: Drawable[]): void {
@@ -54,35 +50,45 @@ export class Artist {
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
   private drawables: Drawable[];
-  private layers: Layer[];
+  private baseLayer: Layer;
+  private activeLayer: Layer;
 
   private redraw(): void {
-    this.distributeDrawablesToLayers();
-    this.visual_canvas?.drawFrame({
-      zoomer: this.zoomer,
-      drawables: this.drawables,
-      activeDrawables: this.activeDrawables,
-    });
+    this.distribute_drawables();
+    this.update_cursor();
+
+    for (const layer of [this.baseLayer, this.activeLayer]) {
+      layer.canvas.drawFrame({
+        zoomer: this.zoomer,
+        drawables: layer.drawables,
+      });
+
+      this.visual_canvas?.drawImage({
+        zoomer: this.zoomer,
+        image: layer.canvas.element(),
+      });
+    }
   }
 
-  private distributeDrawablesToLayers(): void {
-    const activeDrawables: Drawable[] = [];
+  private distribute_drawables(): void {
+    this.activeLayer.drawables = [];
+    this.baseLayer.drawables = [];
+
     for (const d of this.drawables) {
       if (
         this.cursor &&
         d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
-        !activeDrawables.includes(d)
+        !this.activeLayer.drawables.includes(d)
       ) {
-        activeDrawables.push(d);
+        this.activeLayer.drawables.push(d);
+      } else {
+        this.baseLayer.drawables.push(d);
       }
     }
+  }
 
-    const base = this.layers.find((l) => l.id === 'base');
-    const active = this.layers.find((l) => l.id === 'active');
-
-    base?.drawables = this.drawables.filter(d => !activeDrawables.includes(d));
-
-    if (this.activeDrawables.length > 0) {
+  private update_cursor(): void {
+    if (this.activeLayer.drawables.length > 0) {
       this.visual_canvas?.setCursor('pointer');
     } else {
       this.visual_canvas?.setCursor('default');
@@ -121,13 +127,12 @@ export class Artist {
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
-      this.distributeDrawablesToLayers();
+      this.distribute_drawables();
     });
   }
 }
 
 interface Layer {
-  id: 'base' | 'active';
   drawables: Drawable[];
   canvas: Canvas;
 }

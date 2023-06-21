@@ -30,8 +30,8 @@ export class Canvas {
       const appliedHeight = this.deviceScale
         ? this.deviceScale * currElHeight
         : currElHeight;
-      this.canvasElement.attr('width', appliedWidth);
-      this.canvasElement.attr('height', appliedHeight);
+      this.canvasElement.attr('width', window.innerWidth);
+      this.canvasElement.attr('height', window.innerHeight);
     }
 
     if (this.deviceScale) {
@@ -100,14 +100,40 @@ export class Canvas {
     }
   }
 
+  public drawImage({
+    zoomer,
+    image,
+  }: {
+    zoomer: Zoomer;
+    image: HTMLCanvasElement | null;
+  }) {
+    if (!this.context || !image) return;
+
+    const width = Number(this.canvasElement.attr('width'));
+    const height = Number(this.canvasElement.attr('height'));
+
+    this.context.save();
+
+    this.context.clearRect(0, 0, width, height);
+
+    this.context.translate(zoomer.x, zoomer.y);
+    this.context.scale(zoomer.k, zoomer.k);
+
+    const test = new Canvas(undefined);
+    test.drawText('hello world', '#ffffff', 200, 200);
+
+    this.drawText('hello world?', '#ffffff', 300, 200);
+    this.context.drawImage(test.element()!, 0, 0);
+
+    this.context.restore();
+  }
+
   public drawFrame({
     zoomer,
     drawables,
-    activeDrawables,
   }: {
     zoomer: Zoomer;
     drawables: Drawable[];
-    activeDrawables: Drawable[];
   }) {
     if (!this.context) return;
 
@@ -119,17 +145,13 @@ export class Canvas {
       Number(this.canvasElement.attr('width')),
       Number(this.canvasElement.attr('height')),
     );
+
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    drawables.forEach((d) => {
-      const highlight = activeDrawables.includes(d)
-        ? 'active'
-        : activeDrawables.length > 0
-        ? 'dimmed'
-        : 'normal';
-      d.draw(this, highlight);
-    });
+    for (const drawable of drawables) {
+      drawable.draw(this, 'normal');
+    }
 
     this.context.restore();
   }
@@ -150,6 +172,10 @@ export class Canvas {
 
   public setCursor(style: 'pointer' | 'default'): void {
     this.canvasElement.style('cursor', style);
+  }
+
+  public element(): HTMLCanvasElement | null {
+    return this.canvasElement.node();
   }
 
   private canvasElement: Selection<
