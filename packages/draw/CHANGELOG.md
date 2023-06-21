@@ -1,5 +1,12 @@
 # @mindgraph/draw
 
+## 0.8.0
+
+### Minor Changes
+
+- 2a01cf6: Introduced functionality for "drawables" to be dimmed
+- 64c2c52: New animation class! Animation on-hover in the Mindgraph defaults
+
 ## 0.7.1
 
 ### Patch Changes
