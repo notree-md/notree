@@ -30,8 +30,8 @@ export class Canvas {
       const appliedHeight = this.deviceScale
         ? this.deviceScale * currElHeight
         : currElHeight;
-      this.canvasElement.attr('width', window.innerWidth);
-      this.canvasElement.attr('height', window.innerHeight);
+      this.canvasElement.attr('width', window.innerWidth * this.deviceScale);
+      this.canvasElement.attr('height', window.innerHeight * this.deviceScale);
     }
 
     if (this.deviceScale) {
@@ -119,11 +119,23 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    const test = new Canvas(undefined);
-    test.drawText('hello world', '#ffffff', 200, 200);
+    const test = new Canvas(undefined, this.deviceScale);
+    test.drawText(
+      'hello world',
+      '#ffffff',
+      200 / this.deviceScale,
+      200 / this.deviceScale,
+    );
 
-    this.drawText('hello world?', '#ffffff', 300, 200);
-    this.context.drawImage(test.element()!, 0, 0);
+    this.drawText('hello world?', '#ffffff', 400, 200);
+    this.context.imageSmoothingEnabled = false;
+    this.context.drawImage(
+      test.element()!,
+      0,
+      0,
+      window.innerWidth * this.deviceScale,
+      window.innerHeight * this.deviceScale,
+    );
 
     this.context.restore();
   }

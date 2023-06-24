@@ -24,11 +24,11 @@ export class Artist {
     this.drawables = [];
     this.baseLayer = {
       drawables: [],
-      canvas: new Canvas(undefined),
+      canvas: new Canvas(undefined, this.styles.deviceScale),
     };
     this.activeLayer = {
       drawables: [],
-      canvas: new Canvas(undefined),
+      canvas: new Canvas(undefined, this.styles.deviceScale),
     };
   }
 
