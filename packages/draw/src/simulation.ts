@@ -1,13 +1,19 @@
 import { GraphData } from '@mindgraph/types';
 import { map } from 'd3-array';
-import { SimulationLink, GraphSimulationConfig, SimulationNode } from './types';
+import { GraphSimulationConfig, SimulationNode } from './types';
 import {
+  SimulationNodeDatum,
   forceSimulation,
   forceManyBody,
   forceCenter,
   forceLink,
   Simulation as D3Simulation,
 } from 'd3-force';
+
+export type ConfiguredSimulationLink = SimulationNodeDatum & {
+  source: SimulationNode;
+  target: SimulationNode;
+};
 
 export interface MindGraphSimulationArgs {
   data: GraphData;
@@ -19,7 +25,7 @@ export interface MindGraphSimulationArgs {
 export class Simulation {
   public readonly configuration: GraphSimulationConfig;
   public readonly nodes: SimulationNode[];
-  public readonly links: SimulationLink[];
+  public readonly links: ConfiguredSimulationLink[];
 
   constructor({
     data: { nodes, links },
@@ -28,14 +34,29 @@ export class Simulation {
     height,
   }: MindGraphSimulationArgs) {
     this.nodes = map(nodes, merge_node_datum);
-    this.links = map(links, merge_node_datum) as unknown as SimulationLink[];
+    this.links = map(
+      links,
+      merge_node_datum,
+    ) as unknown as ConfiguredSimulationLink[];
     this.configuration = {
       ...default_simulation_config,
       ...simulationConfig,
     };
-
-    this.build({ width, height });
+    this.simulation = this.build({ width, height });
   }
+
+  public start(
+    observers?: ((
+      nodes: SimulationNode[],
+      links: ConfiguredSimulationLink[],
+    ) => void)[],
+  ): void {
+    this.simulation.on('tick', () => {
+      observers?.forEach((f) => f(this.nodes, this.links));
+    });
+  }
+
+  private simulation: D3Simulation<SimulationNode, undefined>;
 
   private build({
     width,

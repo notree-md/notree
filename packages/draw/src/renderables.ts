@@ -1,18 +1,29 @@
 import { Canvas, Drawable } from './canvas';
+import { NodeClickCallback } from './mindgraph';
+import { ConfiguredSimulationLink } from './simulation';
 import { Styles } from './style';
-import { SimulationNode, Circle, Color, SimulationLink, NodeClickCallback } from './types';
+import { SimulationNode, Circle } from './types';
 import { Zoomer } from './zoomer';
 import { Animation } from './animation';
 
+function between(min: number, max: number, val: number): boolean {
+  return val >= min && val <= max;
+}
+
 export class RenderableLink implements Drawable {
-  constructor(simLink: SimulationLink, styles: Styles) {
+  private simLink: ConfiguredSimulationLink;
+  private styles: Styles;
+  private currentLinkColor: string;
+  private animation: Animation<string> | undefined;
+
+  public constructor(simLink: ConfiguredSimulationLink, styles: Styles) {
     this.simLink = simLink;
     this.styles = styles;
     this.currentLinkColor = this.styles.linkColor;
     this.animation = undefined;
   }
 
-  public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
+  isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
     const sourceNode = new RenderableNode(this.simLink.source, this.styles);
     const targetNode = new RenderableNode(this.simLink.target, this.styles);
     return (
@@ -20,13 +31,14 @@ export class RenderableLink implements Drawable {
     );
   }
 
-  public draw(canvas: Canvas, highlight: 'active' | 'normal'): void {
+  draw(canvas: Canvas, highlight: 'active' | 'dimmed' | 'normal'): void {
     const line = {
       source: this.simLink.source,
       target: this.simLink.target,
     };
     const highlightMap = {
       active: this.styles.activeLinkColor,
+      dimmed: this.styles.dimmedLinkColor,
       normal: this.styles.linkColor,
     };
 
@@ -48,11 +60,6 @@ export class RenderableLink implements Drawable {
     }
     canvas.drawLine(line, this.currentLinkColor);
   }
-
-  private simLink: SimulationLink;
-  private styles: Styles;
-  private currentLinkColor: Color;
-  private animation: Animation<string> | undefined;
 }
 
 export class RenderableNode implements Drawable {
@@ -159,8 +166,4 @@ export class RenderableNode implements Drawable {
       },
     );
   }
-}
-
-function between(min: number, max: number, val: number): boolean {
-  return val >= min && val <= max;
 }

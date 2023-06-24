@@ -30,8 +30,8 @@ export class Canvas {
       const appliedHeight = this.deviceScale
         ? this.deviceScale * currElHeight
         : currElHeight;
-      this.canvasElement.attr('width', window.innerWidth * this.deviceScale);
-      this.canvasElement.attr('height', window.innerHeight * this.deviceScale);
+      this.canvasElement.attr('width', appliedWidth);
+      this.canvasElement.attr('height', appliedHeight);
     }
 
     if (this.deviceScale) {
@@ -100,52 +100,14 @@ export class Canvas {
     }
   }
 
-  public drawImage({
-    zoomer,
-    image,
-  }: {
-    zoomer: Zoomer;
-    image: HTMLCanvasElement | null;
-  }) {
-    if (!this.context || !image) return;
-
-    const width = Number(this.canvasElement.attr('width'));
-    const height = Number(this.canvasElement.attr('height'));
-
-    this.context.save();
-
-    this.context.clearRect(0, 0, width, height);
-
-    this.context.translate(zoomer.x, zoomer.y);
-    this.context.scale(zoomer.k, zoomer.k);
-
-    const test = new Canvas(undefined, this.deviceScale);
-    test.drawText(
-      'hello world',
-      '#ffffff',
-      200 / this.deviceScale,
-      200 / this.deviceScale,
-    );
-
-    this.drawText('hello world?', '#ffffff', 400, 200);
-    this.context.imageSmoothingEnabled = false;
-    this.context.drawImage(
-      test.element()!,
-      0,
-      0,
-      window.innerWidth * this.deviceScale,
-      window.innerHeight * this.deviceScale,
-    );
-
-    this.context.restore();
-  }
-
   public drawFrame({
     zoomer,
     drawables,
+    activeDrawables,
   }: {
     zoomer: Zoomer;
     drawables: Drawable[];
+    activeDrawables: Drawable[];
   }) {
     if (!this.context) return;
 
@@ -157,13 +119,17 @@ export class Canvas {
       Number(this.canvasElement.attr('width')),
       Number(this.canvasElement.attr('height')),
     );
-
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    for (const drawable of drawables) {
-      drawable.draw(this, 'normal');
-    }
+    drawables.forEach((d) => {
+      const highlight = activeDrawables.includes(d)
+        ? 'active'
+        : activeDrawables.length > 0
+        ? 'dimmed'
+        : 'normal';
+      d.draw(this, highlight);
+    });
 
     this.context.restore();
   }
@@ -184,10 +150,6 @@ export class Canvas {
 
   public setCursor(style: 'pointer' | 'default'): void {
     this.canvasElement.style('cursor', style);
-  }
-
-  public element(): HTMLCanvasElement | null {
-    return this.canvasElement.node();
   }
 
   private canvasElement: Selection<
