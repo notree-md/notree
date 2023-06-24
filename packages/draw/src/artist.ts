@@ -23,6 +23,8 @@ export class Artist {
       this.styles.deviceScale,
     );
 
+    this.in_memory_canvas = new Canvas(undefined, this.styles.deviceScale);
+
     this.zoomer = new Zoomer();
     this.drawables = [];
     this.activeDrawables = [];
@@ -45,15 +47,20 @@ export class Artist {
 
   private redraw(): void {
     this.updateActiveDrawables();
-    this.visual_canvas?.drawFrame({
+    this.in_memory_canvas.drawFrame({
       zoomer: this.zoomer,
       drawables: this.drawables,
       activeDrawables: this.activeDrawables,
+    });
+    this.visual_canvas?.drawImage({
+      zoomer: this.zoomer,
+      image: this.in_memory_canvas.element(),
     });
   }
 
   private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
+  private in_memory_canvas: Canvas;
   private cursor: { x: number; y: number } | undefined;
   private styles: Styles;
   private zoomer: Zoomer;
