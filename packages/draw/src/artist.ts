@@ -3,13 +3,17 @@ import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { MindGraphConfig } from './types';
 
+interface Layer {
+  drawables: Drawable[];
+  canvas: Canvas;
+}
+
 export class Artist {
   public readonly canvasInitialWidth: number;
   public readonly canvasInitialHeight: number;
   public readonly styles: Styles;
 
   constructor({ style, canvas }: MindGraphConfig) {
-    this.canvasElement = canvas;
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
     this.canvasInitialHeight = canvas.getBoundingClientRect().height;
 
@@ -19,21 +23,25 @@ export class Artist {
       this.canvasInitialHeight,
     );
 
-    this.visual_canvas = new Canvas(this.canvasElement);
-
-    this.base_layer = new Canvas();
-    this.base_layer.canvasElement.attr(
-      'width',
-      this.visual_canvas.canvasElement.node()?.width || 0,
-    );
-    this.base_layer.canvasElement.attr(
-      'height',
-      this.visual_canvas.canvasElement.node()?.height || 0,
-    );
-
+    this.visual_canvas = new Canvas(canvas, {
+      deviceScale: this.styles.deviceScale,
+    });
     this.zoomer = new Zoomer();
+
+    const memoryCanvasConfig = {
+      width: this.visual_canvas.canvasElement.node()?.width || 0,
+      height: this.visual_canvas.canvasElement.node()?.height || 0,
+    };
+
     this.drawables = [];
-    this.activeDrawables = [];
+    this.baseLayer = {
+      drawables: [],
+      canvas: new Canvas(undefined, memoryCanvasConfig),
+    };
+    this.activeLayer = {
+      drawables: [],
+      canvas: new Canvas(undefined, memoryCanvasConfig),
+    };
   }
 
   public draw(drawables: Drawable[]): void {
@@ -43,13 +51,23 @@ export class Artist {
   }
 
   private redraw(): void {
-    this.updateActiveDrawables();
-    this.base_layer?.drawFrame({
+    this.distribute_drawables();
+    this.update_cursor();
+
+    this.baseLayer.canvas.drawFrame({
       zoomer: this.zoomer,
-      drawables: this.drawables,
-      activeDrawables: this.activeDrawables,
+      drawables: this.baseLayer.drawables,
     });
-    this.visual_canvas?.drawImage(this.base_layer.canvasElement.node());
+    this.visual_canvas?.drawImage(this.baseLayer.canvas.canvasElement.node());
+
+    // for (const layer of [this.baseLayer, this.activeLayer]) {
+    //   layer.canvas.drawFrame({
+    //     zoomer: this.zoomer,
+    //     drawables: layer.drawables,
+    //   });
+    //
+    //   this.visual_canvas?.drawImage(layer.canvas.canvasElement.node());
+    // }
   }
 
   public makeInteractive(): void {
@@ -59,13 +77,12 @@ export class Artist {
     this.add_mousemove_handler();
   }
 
-  private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
-  private base_layer: Canvas;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
-  private activeDrawables: Drawable[];
   private drawables: Drawable[];
+  private baseLayer: Layer;
+  private activeLayer: Layer;
 
   private add_window_resize_listener(): void {
     if (isSSR()) return;
@@ -86,21 +103,25 @@ export class Artist {
     );
   }
 
-  private updateActiveDrawables(): void {
-    this.activeDrawables = [];
+  private distribute_drawables(): void {
+    this.activeLayer.drawables = [];
+    this.baseLayer.drawables = [];
+
     for (const d of this.drawables) {
       if (
         this.cursor &&
         d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
-        !this.activeDrawables.includes(d)
+        !this.activeLayer.drawables.includes(d)
       ) {
-        if (d.onHover) {
-          d.onHover();
-        }
-        this.activeDrawables.push(d);
+        this.activeLayer.drawables.push(d);
+      } else {
+        this.baseLayer.drawables.push(d);
       }
     }
-    if (this.activeDrawables.length > 0) {
+  }
+
+  private update_cursor(): void {
+    if (this.activeLayer.drawables.length > 0) {
       this.visual_canvas?.setCursor('pointer');
     } else {
       this.visual_canvas?.setCursor('default');
@@ -120,7 +141,7 @@ export class Artist {
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
-      this.updateActiveDrawables();
+      this.distribute_drawables();
     });
   }
 }

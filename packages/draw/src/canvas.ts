@@ -17,19 +17,26 @@ export class Canvas {
     undefined
   >;
 
-  constructor(canvasElement?: HTMLCanvasElement, _deviceScale?: number) {
+  constructor(
+    canvasElement: HTMLCanvasElement | undefined,
+    config?: {
+      deviceScale?: number;
+      width?: number;
+      height?: number;
+    },
+  ) {
     this.canvasElement = canvasElement
       ? select(canvasElement)
       : create('canvas');
     this.context = this.canvasElement.node()?.getContext('2d') || undefined;
-    this.resizeCanvas();
+    this.resizeCanvas(config?.width, config?.height);
   }
 
-  public resizeCanvas(): void {
+  public resizeCanvas(width?: number, height?: number): void {
     const elNode = this.canvasElement.node();
     if (elNode) {
-      const currElWidth = elNode.getBoundingClientRect().width;
-      const currElHeight = elNode.getBoundingClientRect().height;
+      const currElWidth = width || elNode.getBoundingClientRect().width;
+      const currElHeight = height || elNode.getBoundingClientRect().height;
       const appliedWidth = currElWidth;
       const appliedHeight = currElHeight;
       this.canvasElement.attr('width', appliedWidth);
@@ -101,11 +108,9 @@ export class Canvas {
   public drawFrame({
     zoomer,
     drawables,
-    activeDrawables,
   }: {
     zoomer: Zoomer;
     drawables: Drawable[];
-    activeDrawables: Drawable[];
   }) {
     if (!this.context) return;
 
@@ -117,17 +122,13 @@ export class Canvas {
       Number(this.canvasElement.attr('width')),
       Number(this.canvasElement.attr('height')),
     );
+
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    drawables.forEach((d) => {
-      const highlight = activeDrawables.includes(d)
-        ? 'active'
-        : activeDrawables.length > 0
-        ? 'dimmed'
-        : 'normal';
-      d.draw(this, highlight);
-    });
+    for (const drawable of drawables) {
+      drawable.draw(this, 'normal');
+    }
 
     this.context.restore();
   }
