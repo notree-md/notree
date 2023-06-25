@@ -6,6 +6,7 @@ import { MindGraphConfig } from './types';
 export class Artist {
   public readonly canvasInitialWidth: number;
   public readonly canvasInitialHeight: number;
+  public readonly styles: Styles;
 
   constructor({ style, canvas }: MindGraphConfig) {
     this.canvasElement = canvas;
@@ -26,15 +27,6 @@ export class Artist {
     this.zoomer = new Zoomer();
     this.drawables = [];
     this.activeDrawables = [];
-
-    this.add_window_resize_listener();
-    this.add_zoom_listener();
-    this.add_click_handler();
-    this.add_mousemove_handler();
-  }
-
-  public getStyles(): Styles {
-    return this.styles;
   }
 
   public draw(drawables: Drawable[]): void {
@@ -52,10 +44,16 @@ export class Artist {
     });
   }
 
+  public makeInteractive(): void {
+    this.add_window_resize_listener();
+    this.add_zoom_listener();
+    this.add_click_handler();
+    this.add_mousemove_handler();
+  }
+
   private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
-  private styles: Styles;
   private zoomer: Zoomer;
   private activeDrawables: Drawable[];
   private drawables: Drawable[];

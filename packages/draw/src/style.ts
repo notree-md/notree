@@ -1,31 +1,12 @@
 import { GraphStyleConfig } from './types';
 
-export interface Styles {
-  width: number;
-  height: number;
-  deviceScale: number;
-  nodeColor: string;
-  activeNodeColor: string;
-  dimmedNodeColor: string;
-  linkColor: string;
-  activeLinkColor: string;
-  dimmedLinkColor: string;
-  titleColor: string;
-  hoverAnimationDuration: number;
-  nodeTitlePadding: number;
-  activeNodeTitlePadding: number;
-  activeNodeRadiusPadding: number;
-  minimumNodeSize: number;
-  nodeScaleFactor: number;
-  minZoom: number;
-  maxZoom: number;
-}
+export type Styles = ReturnType<typeof createStyles>;
 
 export function createStyles(
   styleConfig: Partial<GraphStyleConfig> | undefined,
   canvasWidth: number,
   canvasHeight: number,
-): Styles {
+) {
   if (isSSR()) {
     return { ...default_styles, width: 0, height: 0, deviceScale: 0 };
   }
