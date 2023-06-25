@@ -6,9 +6,9 @@ import { MindGraphConfig } from './types';
 export class Artist {
   public readonly canvasInitialWidth: number;
   public readonly canvasInitialHeight: number;
+  public readonly styles: Styles;
 
   constructor({ style, canvas }: MindGraphConfig) {
-    this.canvasElement = canvas;
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
     this.canvasInitialHeight = canvas.getBoundingClientRect().height;
 
@@ -18,54 +18,86 @@ export class Artist {
       this.canvasInitialHeight,
     );
 
-    this.visual_canvas = new Canvas(
-      this.canvasElement,
-      this.styles.deviceScale,
-    );
-
-    this.in_memory_canvas = new Canvas(undefined, this.styles.deviceScale);
-
+    this.visual_canvas = new Canvas(canvas, this.styles.deviceScale);
     this.zoomer = new Zoomer();
-    this.drawables = [];
-    this.activeDrawables = [];
 
+    this.drawables = [];
+    this.baseLayer = {
+      drawables: [],
+      canvas: new Canvas(undefined),
+    };
+    this.activeLayer = {
+      drawables: [],
+      canvas: new Canvas(undefined),
+    };
+  }
+
+  public draw(drawables: Drawable[]): void {
+    if (isSSR()) return;
+
+    this.drawables = drawables;
+    this.redraw();
+  }
+
+  public makeInteractive(): void {
     this.add_window_resize_listener();
     this.add_zoom_listener();
     this.add_click_handler();
     this.add_mousemove_handler();
   }
 
-  public getStyles(): Styles {
-    return this.styles;
-  }
-
-  public draw(drawables: Drawable[]): void {
-    if (isSSR()) return;
-    this.drawables = drawables;
-    this.redraw();
-  }
+  private visual_canvas: Canvas | undefined;
+  private cursor: { x: number; y: number } | undefined;
+  private zoomer: Zoomer;
+  private drawables: Drawable[];
+  private baseLayer: Layer;
+  private activeLayer: Layer;
 
   private redraw(): void {
-    this.updateActiveDrawables();
-    this.in_memory_canvas.drawFrame({
-      zoomer: this.zoomer,
-      drawables: this.drawables,
-      activeDrawables: this.activeDrawables,
-    });
-    this.visual_canvas?.drawImage({
-      zoomer: this.zoomer,
-      image: this.in_memory_canvas.element(),
-    });
+    this.distribute_drawables();
+    this.update_cursor();
+
+    for (const layer of [this.baseLayer, this.activeLayer]) {
+      this.visual_canvas?.drawFrame({
+        zoomer: this.zoomer,
+        drawables: layer.drawables,
+      });
+      // layer.canvas.drawFrame({
+      //   zoomer: this.zoomer,
+      //   drawables: layer.drawables,
+      // });
+      //
+      // this.visual_canvas?.drawImage({
+      //   zoomer: this.zoomer,
+      //   image: layer.canvas.element(),
+      // });
+    }
   }
 
-  private canvasElement: HTMLCanvasElement;
-  private visual_canvas: Canvas | undefined;
-  private in_memory_canvas: Canvas;
-  private cursor: { x: number; y: number } | undefined;
-  private styles: Styles;
-  private zoomer: Zoomer;
-  private activeDrawables: Drawable[];
-  private drawables: Drawable[];
+  private distribute_drawables(): void {
+    this.activeLayer.drawables = [];
+    this.baseLayer.drawables = [];
+
+    for (const d of this.drawables) {
+      if (
+        this.cursor &&
+        d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
+        !this.activeLayer.drawables.includes(d)
+      ) {
+        this.activeLayer.drawables.push(d);
+      } else {
+        this.baseLayer.drawables.push(d);
+      }
+    }
+  }
+
+  private update_cursor(): void {
+    if (this.activeLayer.drawables.length > 0) {
+      this.visual_canvas?.setCursor('pointer');
+    } else {
+      this.visual_canvas?.setCursor('default');
+    }
+  }
 
   private add_window_resize_listener(): void {
     if (isSSR()) return;
@@ -86,27 +118,6 @@ export class Artist {
     );
   }
 
-  private updateActiveDrawables(): void {
-    this.activeDrawables = [];
-    for (const d of this.drawables) {
-      if (
-        this.cursor &&
-        d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
-        !this.activeDrawables.includes(d)
-      ) {
-        if (d.onHover) {
-          d.onHover();
-        }
-        this.activeDrawables.push(d);
-      }
-    }
-    if (this.activeDrawables.length > 0) {
-      this.visual_canvas?.setCursor('pointer');
-    } else {
-      this.visual_canvas?.setCursor('default');
-    }
-  }
-
   private add_click_handler(): void {
     this.visual_canvas?.on('click', ({ layerX, layerY }) => {
       for (const d of this.drawables) {
@@ -120,7 +131,12 @@ export class Artist {
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
-      this.updateActiveDrawables();
+      this.distribute_drawables();
     });
   }
+}
+
+interface Layer {
+  drawables: Drawable[];
+  canvas: Canvas;
 }

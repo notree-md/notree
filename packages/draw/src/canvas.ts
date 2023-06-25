@@ -11,66 +11,27 @@ export interface Drawable {
 
 export class Canvas {
   constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
-    this.deviceScale = window.devicePixelRatio;
-
-    if (canvasElement) {
-      this.canvasElement = select(canvasElement);
-
-      const node = this.canvasElement.node();
-      if (node) {
-        node.width = window.innerWidth * window.devicePixelRatio;
-        node.height = window.innerHeight * window.devicePixelRatio;
-        node.style.width = `${window.innerWidth}px`;
-        node.style.height = `${window.innerHeight}px`;
-      }
-      // this.canvasElement.attr('width', window.innerWidth);
-      // this.canvasElement.attr('height', window.innerHeight);
-    } else {
-      this.canvasElement = create('canvas');
-      const node = this.canvasElement.node();
-      if (node) {
-        node.width = window.innerWidth * window.devicePixelRatio;
-        node.height = window.innerHeight * window.devicePixelRatio;
-        node.style.width = `${window.innerWidth}px`;
-        node.style.height = `${window.innerHeight}px`;
-      }
-      // this.canvasElement.attr('width', window.innerWidth);
-      // this.canvasElement.attr('height', window.innerHeight);
-    }
-
+    this.deviceScale = deviceScale;
+    this.canvasElement = canvasElement
+      ? select(canvasElement)
+      : create('canvas');
     this.context = this.canvasElement.node()?.getContext('2d') || undefined;
-    if (canvasElement) {
-      this.scale();
-    }
-
-    // if (canvasElement) {
-    //     this.scale()
-    // }
-    // if (this.context) {
-    //   this.context.imageSmoothingEnabled = false;
-    // }
-
     this.resizeCanvas();
   }
 
-  public scale() {
-    this.context?.scale(this.deviceScale, this.deviceScale);
-  }
-
   public resizeCanvas(): void {
-    return;
     const elNode = this.canvasElement.node();
     if (elNode) {
       const currElWidth = elNode.getBoundingClientRect().width;
       const currElHeight = elNode.getBoundingClientRect().height;
       const appliedWidth = this.deviceScale
-        ? this.deviceScale * window.innerWidth
+        ? this.deviceScale * currElWidth
         : currElWidth;
       const appliedHeight = this.deviceScale
-        ? this.deviceScale * window.innerHeight
+        ? this.deviceScale * currElHeight
         : currElHeight;
-      this.canvasElement.attr('width', appliedWidth);
-      this.canvasElement.attr('height', appliedHeight);
+      this.canvasElement.attr('width', window.innerWidth);
+      this.canvasElement.attr('height', window.innerHeight);
     }
 
     if (this.deviceScale) {
@@ -139,40 +100,6 @@ export class Canvas {
     }
   }
 
-  public drawFrame({
-    zoomer,
-    drawables,
-    activeDrawables,
-  }: {
-    zoomer: Zoomer;
-    drawables: Drawable[];
-    activeDrawables: Drawable[];
-  }) {
-    if (!this.context) return;
-
-    this.context.save();
-
-    this.context.clearRect(
-      0,
-      0,
-      Number(this.canvasElement.attr('width')),
-      Number(this.canvasElement.attr('height')),
-    );
-    this.context.translate(zoomer.x, zoomer.y);
-    this.context.scale(zoomer.k, zoomer.k);
-
-    drawables.forEach((d) => {
-      const highlight = activeDrawables.includes(d)
-        ? 'active'
-        : activeDrawables.length > 0
-        ? 'dimmed'
-        : 'normal';
-      d.draw(this, highlight);
-    });
-
-    this.context.restore();
-  }
-
   public drawImage({
     zoomer,
     image,
@@ -192,13 +119,35 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
-    this.context.drawImage(
-      image,
+    this.context.drawImage(image, 0, 0);
+
+    this.context.restore();
+  }
+
+  public drawFrame({
+    zoomer,
+    drawables,
+  }: {
+    zoomer: Zoomer;
+    drawables: Drawable[];
+  }) {
+    if (!this.context) return;
+
+    this.context.save();
+
+    this.context.clearRect(
       0,
       0,
-      // width,
-      // hewuuught
+      Number(this.canvasElement.attr('width')),
+      Number(this.canvasElement.attr('height')),
     );
+
+    this.context.translate(zoomer.x, zoomer.y);
+    this.context.scale(zoomer.k, zoomer.k);
+
+    for (const drawable of drawables) {
+      drawable.draw(this, 'normal');
+    }
 
     this.context.restore();
   }
@@ -207,10 +156,6 @@ export class Canvas {
   public on(event: 'mousemove', callback: (args: MouseEvent) => void): void;
   public on(event: never, callback: never): void {
     this.canvasElement.on(event, callback);
-  }
-
-  public element(): HTMLCanvasElement | null {
-    return this.canvasElement.node();
   }
 
   public call(
@@ -223,6 +168,10 @@ export class Canvas {
 
   public setCursor(style: 'pointer' | 'default'): void {
     this.canvasElement.style('cursor', style);
+  }
+
+  public element(): HTMLCanvasElement | null {
+    return this.canvasElement.node();
   }
 
   private canvasElement: Selection<
