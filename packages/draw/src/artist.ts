@@ -21,6 +21,16 @@ export class Artist {
 
     this.visual_canvas = new Canvas(this.canvasElement);
 
+    this.base_layer = new Canvas();
+    this.base_layer.canvasElement.attr(
+      'width',
+      this.visual_canvas.canvasElement.node()?.width || 0,
+    );
+    this.base_layer.canvasElement.attr(
+      'height',
+      this.visual_canvas.canvasElement.node()?.height || 0,
+    );
+
     this.zoomer = new Zoomer();
     this.drawables = [];
     this.activeDrawables = [];
@@ -34,10 +44,14 @@ export class Artist {
 
   private redraw(): void {
     this.updateActiveDrawables();
-    this.visual_canvas?.drawFrame({
+    this.base_layer?.drawFrame({
       zoomer: this.zoomer,
       drawables: this.drawables,
       activeDrawables: this.activeDrawables,
+    });
+    this.visual_canvas?.drawImage({
+      zoomer: this.zoomer,
+      image: this.base_layer.canvasElement.node(),
     });
   }
 
@@ -50,6 +64,7 @@ export class Artist {
 
   private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
+  private base_layer: Canvas;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
   private activeDrawables: Drawable[];

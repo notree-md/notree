@@ -10,6 +10,13 @@ export interface Drawable {
 }
 
 export class Canvas {
+  public readonly canvasElement: Selection<
+    HTMLCanvasElement,
+    undefined,
+    null,
+    undefined
+  >;
+
   constructor(canvasElement?: HTMLCanvasElement, _deviceScale?: number) {
     this.canvasElement = canvasElement
       ? select(canvasElement)
@@ -125,6 +132,30 @@ export class Canvas {
     this.context.restore();
   }
 
+  public drawImage({
+    zoomer,
+    image,
+  }: {
+    zoomer: Zoomer;
+    image: HTMLCanvasElement | null;
+  }) {
+    if (!this.context || !image) return;
+
+    const width = Number(this.canvasElement.attr('width'));
+    const height = Number(this.canvasElement.attr('height'));
+
+    this.context.save();
+
+    this.context.clearRect(0, 0, width, height);
+
+    this.context.translate(zoomer.x, zoomer.y);
+    this.context.scale(zoomer.k, zoomer.k);
+
+    this.context.drawImage(image, 0, 0);
+
+    this.context.restore();
+  }
+
   public on(event: 'click', callback: (args: NodeClickEvent) => void): void;
   public on(event: 'mousemove', callback: (args: MouseEvent) => void): void;
   public on(event: never, callback: never): void {
@@ -143,11 +174,5 @@ export class Canvas {
     this.canvasElement.style('cursor', style);
   }
 
-  private canvasElement: Selection<
-    HTMLCanvasElement,
-    undefined,
-    null,
-    undefined
-  >;
   private context: CanvasRenderingContext2D | undefined;
 }
