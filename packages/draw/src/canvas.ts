@@ -132,13 +132,7 @@ export class Canvas {
     this.context.restore();
   }
 
-  public drawImage({
-    zoomer,
-    image,
-  }: {
-    zoomer: Zoomer;
-    image: HTMLCanvasElement | null;
-  }) {
+  public drawImage(image: HTMLCanvasElement | null) {
     if (!this.context || !image) return;
 
     const width = Number(this.canvasElement.attr('width'));
@@ -147,9 +141,6 @@ export class Canvas {
     this.context.save();
 
     this.context.clearRect(0, 0, width, height);
-
-    this.context.translate(zoomer.x, zoomer.y);
-    this.context.scale(zoomer.k, zoomer.k);
 
     this.context.drawImage(image, 0, 0);
 

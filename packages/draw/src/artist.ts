@@ -49,10 +49,7 @@ export class Artist {
       drawables: this.drawables,
       activeDrawables: this.activeDrawables,
     });
-    this.visual_canvas?.drawImage({
-      zoomer: this.zoomer,
-      image: this.base_layer.canvasElement.node(),
-    });
+    this.visual_canvas?.drawImage(this.base_layer.canvasElement.node());
   }
 
   public makeInteractive(): void {
