@@ -54,20 +54,18 @@ export class Artist {
     this.distribute_drawables();
     this.update_cursor();
 
-    this.baseLayer.canvas.drawFrame({
-      zoomer: this.zoomer,
-      drawables: this.baseLayer.drawables,
-    });
-    this.visual_canvas?.drawImage(this.baseLayer.canvas.canvasElement.node());
+    const layers = [this.baseLayer, this.activeLayer];
 
-    // for (const layer of [this.baseLayer, this.activeLayer]) {
-    //   layer.canvas.drawFrame({
-    //     zoomer: this.zoomer,
-    //     drawables: layer.drawables,
-    //   });
-    //
-    //   this.visual_canvas?.drawImage(layer.canvas.canvasElement.node());
-    // }
+    for (const layer of layers) {
+      layer.canvas.drawFrame({
+        zoomer: this.zoomer,
+        drawables: layer.drawables,
+      });
+    }
+
+    this.visual_canvas?.drawImage(
+      layers.map((l) => l.canvas.canvasElement.node()),
+    );
   }
 
   public makeInteractive(): void {

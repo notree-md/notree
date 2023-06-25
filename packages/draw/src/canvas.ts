@@ -133,17 +133,19 @@ export class Canvas {
     this.context.restore();
   }
 
-  public drawImage(image: HTMLCanvasElement | null) {
-    if (!this.context || !image) return;
+  public drawImage(layers: (HTMLCanvasElement | null)[]) {
+    if (!this.context) return;
 
     const width = Number(this.canvasElement.attr('width'));
     const height = Number(this.canvasElement.attr('height'));
 
     this.context.save();
-
     this.context.clearRect(0, 0, width, height);
 
-    this.context.drawImage(image, 0, 0);
+    for (const image of layers) {
+      if (!image) continue;
+      this.context.drawImage(image, 0, 0);
+    }
 
     this.context.restore();
   }
