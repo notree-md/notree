@@ -6,6 +6,8 @@ export interface MindGraphConfig {
   canvas: HTMLCanvasElement;
 }
 
+export type HighlightVariant = 'active' | 'dimmed' | 'normal';
+
 export type Circle = {
   x?: number;
   y?: number;

@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mg: MindGraph = new MindGraph({
       data,
       canvas,
+      styles: {
+        titleColor: '#ffffff',
+      },
     });
     mg.onClick((node) => alert(node.id));
     mg.draw();

@@ -1,11 +1,12 @@
 import { Canvas, Drawable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
-import { MindGraphConfig } from './types';
+import { HighlightVariant, MindGraphConfig } from './types';
 
 interface Layer {
   drawables: Drawable[];
   canvas: Canvas;
+  variant: HighlightVariant;
 }
 
 export class Artist {
@@ -37,10 +38,12 @@ export class Artist {
     this.baseLayer = {
       drawables: [],
       canvas: new Canvas(undefined, memoryCanvasConfig),
+      variant: 'normal',
     };
     this.activeLayer = {
       drawables: [],
       canvas: new Canvas(undefined, memoryCanvasConfig),
+      variant: 'active',
     };
   }
 
@@ -60,6 +63,9 @@ export class Artist {
       layer.canvas.drawFrame({
         zoomer: this.zoomer,
         drawables: layer.drawables,
+        config: {
+          highlight: layer.variant,
+        },
       });
     }
 
@@ -115,6 +121,12 @@ export class Artist {
       } else {
         this.baseLayer.drawables.push(d);
       }
+    }
+
+    if (this.activeLayer.drawables.length) {
+      this.baseLayer.variant = 'dimmed';
+    } else {
+      this.baseLayer.variant = 'normal';
     }
   }
 

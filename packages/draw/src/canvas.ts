@@ -1,9 +1,9 @@
 import { create, select, Selection } from 'd3-selection';
-import { NodeClickEvent, Line, Circle } from './types';
+import { NodeClickEvent, Line, Circle, HighlightVariant } from './types';
 import { Zoomer } from './zoomer';
 
 export interface Drawable {
-  draw(canvas: Canvas, highlight: 'active' | 'dimmed' | 'normal'): void;
+  draw(canvas: Canvas, highlight: HighlightVariant): void;
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
   onClick?(): void;
   onHover?(): void;
@@ -108,9 +108,13 @@ export class Canvas {
   public drawFrame({
     zoomer,
     drawables,
+    config,
   }: {
     zoomer: Zoomer;
     drawables: Drawable[];
+    config: {
+      highlight: HighlightVariant;
+    };
   }) {
     if (!this.context) return;
 
@@ -126,8 +130,12 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
+    if (config.highlight === 'dimmed') {
+      this.context.globalAlpha = 0.4;
+    }
+
     for (const drawable of drawables) {
-      drawable.draw(this, 'normal');
+      drawable.draw(this, config.highlight);
     }
 
     this.context.restore();
