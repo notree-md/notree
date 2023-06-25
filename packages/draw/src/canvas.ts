@@ -13,23 +13,41 @@ export class Canvas {
   constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
     this.deviceScale = window.devicePixelRatio;
 
-    this.canvasElement = canvasElement
-      ? select(canvasElement)
-      : create('canvas');
+    if (canvasElement) {
+      this.canvasElement = select(canvasElement);
 
-    const node = this.canvasElement.node();
-    if (node) {
-      // node.style.width = `${window.innerWidth}px`;
-      // node.style.height = `${window.innerHeight}px`;
-      node.width = window.innerWidth * window.devicePixelRatio;
-      node.height = window.innerHeight * window.devicePixelRatio;
-      this.canvasElement.attr('width', window.innerWidth);
-      this.canvasElement.attr('height', window.innerHeight);
+      const node = this.canvasElement.node();
+      if (node) {
+        node.width = window.innerWidth * window.devicePixelRatio;
+        node.height = window.innerHeight * window.devicePixelRatio;
+        node.style.width = `${window.innerWidth}px`;
+        node.style.height = `${window.innerHeight}px`;
+      }
+      // this.canvasElement.attr('width', window.innerWidth);
+      // this.canvasElement.attr('height', window.innerHeight);
+    } else {
+      this.canvasElement = create('canvas');
+      const node = this.canvasElement.node();
+      if (node) {
+        node.width = window.innerWidth * window.devicePixelRatio;
+        node.height = window.innerHeight * window.devicePixelRatio;
+        node.style.width = `${window.innerWidth}px`;
+        node.style.height = `${window.innerHeight}px`;
+      }
+      // this.canvasElement.attr('width', window.innerWidth);
+      // this.canvasElement.attr('height', window.innerHeight);
     }
-    this.context = node?.getContext('2d') || undefined;
+
+    this.context = this.canvasElement.node()?.getContext('2d') || undefined;
+    if (canvasElement) {
+      this.scale();
+    }
 
     // if (canvasElement) {
     //     this.scale()
+    // }
+    // if (this.context) {
+    //   this.context.imageSmoothingEnabled = false;
     // }
 
     this.resizeCanvas();
@@ -179,7 +197,7 @@ export class Canvas {
       0,
       0,
       // width,
-      // height
+      // hewuuught
     );
 
     this.context.restore();
