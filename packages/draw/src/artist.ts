@@ -30,8 +30,8 @@ export class Artist {
     this.zoomer = new Zoomer();
 
     const memoryCanvasConfig = {
-      width: this.visual_canvas.canvasElement.node()?.width || 0,
-      height: this.visual_canvas.canvasElement.node()?.height || 0,
+      initialWidth: this.visual_canvas.node()?.width || 0,
+      initialHeight: this.visual_canvas.node()?.height || 0,
     };
 
     this.drawables = [];
@@ -69,9 +69,7 @@ export class Artist {
       });
     }
 
-    this.visual_canvas?.drawImage(
-      layers.map((l) => l.canvas.canvasElement.node()),
-    );
+    this.visual_canvas?.drawImage(layers.map((l) => l.canvas.node()));
   }
 
   public makeInteractive(): void {

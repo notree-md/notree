@@ -10,37 +10,40 @@ export interface Drawable {
 }
 
 export class Canvas {
-  public readonly canvasElement: Selection<
-    HTMLCanvasElement,
-    undefined,
-    null,
-    undefined
-  >;
-
   constructor(
     canvasElement: HTMLCanvasElement | undefined,
     config?: {
       deviceScale?: number;
-      width?: number;
-      height?: number;
+      initialWidth?: number;
+      initialHeight?: number;
     },
   ) {
+    this.deviceScale = config?.deviceScale;
     this.canvasElement = canvasElement
       ? select(canvasElement)
       : create('canvas');
     this.context = this.canvasElement.node()?.getContext('2d') || undefined;
-    this.resizeCanvas(config?.width, config?.height);
+    this.resizeCanvas(config?.initialWidth, config?.initialHeight);
   }
 
-  public resizeCanvas(width?: number, height?: number): void {
+  public resizeCanvas(initialWidth?: number, initialHeight?: number): void {
     const elNode = this.canvasElement.node();
     if (elNode) {
-      const currElWidth = width || elNode.getBoundingClientRect().width;
-      const currElHeight = height || elNode.getBoundingClientRect().height;
-      const appliedWidth = currElWidth;
-      const appliedHeight = currElHeight;
-      this.canvasElement.attr('width', appliedWidth);
-      this.canvasElement.attr('height', appliedHeight);
+      const currElWidth = elNode.getBoundingClientRect().width;
+      const currElHeight = elNode.getBoundingClientRect().height;
+      const appliedWidth = this.deviceScale
+        ? this.deviceScale * currElWidth
+        : currElWidth;
+      const appliedHeight = this.deviceScale
+        ? this.deviceScale * currElHeight
+        : currElHeight;
+
+      this.canvasElement.attr('width', initialWidth || appliedWidth);
+      this.canvasElement.attr('height', initialHeight || appliedHeight);
+    }
+
+    if (this.deviceScale) {
+      this.context?.scale(this.deviceScale, this.deviceScale);
     }
   }
 
@@ -176,5 +179,16 @@ export class Canvas {
     this.canvasElement.style('cursor', style);
   }
 
+  public node() {
+    return this.canvasElement.node();
+  }
+
+  private canvasElement: Selection<
+    HTMLCanvasElement,
+    undefined,
+    null,
+    undefined
+  >;
   private context: CanvasRenderingContext2D | undefined;
+  private deviceScale: number | undefined;
 }
