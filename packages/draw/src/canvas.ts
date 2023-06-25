@@ -10,8 +10,7 @@ export interface Drawable {
 }
 
 export class Canvas {
-  constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
-    this.deviceScale = deviceScale;
+  constructor(canvasElement?: HTMLCanvasElement, _deviceScale?: number) {
     this.canvasElement = canvasElement
       ? select(canvasElement)
       : create('canvas');
@@ -24,18 +23,10 @@ export class Canvas {
     if (elNode) {
       const currElWidth = elNode.getBoundingClientRect().width;
       const currElHeight = elNode.getBoundingClientRect().height;
-      const appliedWidth = this.deviceScale
-        ? this.deviceScale * currElWidth
-        : currElWidth;
-      const appliedHeight = this.deviceScale
-        ? this.deviceScale * currElHeight
-        : currElHeight;
+      const appliedWidth = currElWidth;
+      const appliedHeight = currElHeight;
       this.canvasElement.attr('width', appliedWidth);
       this.canvasElement.attr('height', appliedHeight);
-    }
-
-    if (this.deviceScale) {
-      this.context?.scale(this.deviceScale, this.deviceScale);
     }
   }
 
@@ -159,5 +150,4 @@ export class Canvas {
     undefined
   >;
   private context: CanvasRenderingContext2D | undefined;
-  private deviceScale: number | undefined;
 }

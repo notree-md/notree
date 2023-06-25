@@ -19,10 +19,7 @@ export class Artist {
       this.canvasInitialHeight,
     );
 
-    this.visual_canvas = new Canvas(
-      this.canvasElement,
-      this.styles.deviceScale,
-    );
+    this.visual_canvas = new Canvas(this.canvasElement);
 
     this.zoomer = new Zoomer();
     this.drawables = [];
