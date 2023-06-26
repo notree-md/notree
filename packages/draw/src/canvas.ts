@@ -108,6 +108,15 @@ export class Canvas {
     }
   }
 
+  public clear() {
+    this.context?.clearRect(
+      0,
+      0,
+      Number(this.canvasElement.attr('width')),
+      Number(this.canvasElement.attr('height')),
+    );
+  }
+
   public drawFrame({
     zoomer,
     drawables,
@@ -122,13 +131,6 @@ export class Canvas {
     if (!this.context) return;
 
     this.context.save();
-
-    this.context.clearRect(
-      0,
-      0,
-      Number(this.canvasElement.attr('width')),
-      Number(this.canvasElement.attr('height')),
-    );
 
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
