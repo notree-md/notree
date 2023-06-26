@@ -135,29 +135,15 @@ export class Canvas {
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
 
+    let refactorThis = config.highlight;
+
     if (config.highlight === 'dimmed') {
+      refactorThis = 'normal';
       this.context.globalAlpha = 0.4;
     }
 
     for (const drawable of drawables) {
-      drawable.draw(this, config.highlight);
-    }
-
-    this.context.restore();
-  }
-
-  public drawImage(layers: (HTMLCanvasElement | null)[]) {
-    if (!this.context) return;
-
-    const width = Number(this.canvasElement.attr('width'));
-    const height = Number(this.canvasElement.attr('height'));
-
-    this.context.save();
-    this.context.clearRect(0, 0, width, height);
-
-    for (const image of layers) {
-      if (!image) continue;
-      this.context.drawImage(image, 0, 0);
+      drawable.draw(this, refactorThis);
     }
 
     this.context.restore();
@@ -179,10 +165,6 @@ export class Canvas {
 
   public setCursor(style: 'pointer' | 'default'): void {
     this.canvasElement.style('cursor', style);
-  }
-
-  public node() {
-    return this.canvasElement.node();
   }
 
   private canvasElement: Selection<

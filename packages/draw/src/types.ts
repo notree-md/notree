@@ -39,11 +39,9 @@ export type NodeClickCallback = (node: SimulationNode) => void;
 export type GraphStyleConfig = {
   nodeColor: string;
   activeNodeColor: string;
-  dimmedNodeColor: string;
   hoverAnimationDuration: number;
   linkColor: string;
   activeLinkColor: string;
-  dimmedLinkColor: string;
   titleColor: string;
   nodeTitlePadding: number;
   activeNodeTitlePadding: number;

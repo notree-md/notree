@@ -30,14 +30,13 @@ export class RenderableLink implements Drawable {
     );
   }
 
-  draw(canvas: Canvas, highlight: 'active' | 'dimmed' | 'normal'): void {
+  draw(canvas: Canvas, highlight: 'active' | 'normal'): void {
     const line = {
       source: this.simLink.source,
       target: this.simLink.target,
     };
     const highlightMap = {
       active: this.styles.activeLinkColor,
-      dimmed: this.styles.dimmedLinkColor,
       normal: this.styles.linkColor,
     };
 
@@ -119,13 +118,12 @@ export class RenderableNode implements Drawable {
     return false;
   }
 
-  draw(canvas: Canvas, highlight: 'active' | 'dimmed' | 'normal'): void {
+  draw(canvas: Canvas, highlight: 'active' | 'normal'): void {
     const radiusPadding =
       highlight === 'active' ? this.styles.activeNodeRadiusPadding : 0;
     const text = this.simNode.name.split('.md')[0];
     const highlightMap = {
       active: this.styles.activeNodeColor,
-      dimmed: this.styles.dimmedNodeColor,
       normal: this.styles.nodeColor,
     };
 
