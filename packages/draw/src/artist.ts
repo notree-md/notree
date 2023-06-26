@@ -5,7 +5,6 @@ import { HighlightVariant, MindGraphConfig } from './types';
 
 interface Layer {
   drawables: Drawable[];
-  canvas: Canvas;
   variant: HighlightVariant;
 }
 
@@ -29,20 +28,13 @@ export class Artist {
     });
     this.zoomer = new Zoomer();
 
-    const memoryCanvasConfig = {
-      initialWidth: this.visual_canvas.node()?.width || 0,
-      initialHeight: this.visual_canvas.node()?.height || 0,
-    };
-
     this.drawables = [];
     this.baseLayer = {
       drawables: [],
-      canvas: new Canvas(undefined, memoryCanvasConfig),
       variant: 'normal',
     };
     this.activeLayer = {
       drawables: [],
-      canvas: new Canvas(undefined, memoryCanvasConfig),
       variant: 'active',
     };
   }
@@ -59,17 +51,19 @@ export class Artist {
 
     const layers = [this.baseLayer, this.activeLayer];
 
-    for (const layer of layers) {
-      layer.canvas.drawFrame({
-        zoomer: this.zoomer,
-        drawables: layer.drawables,
-        config: {
-          highlight: layer.variant,
-        },
-      });
-    }
+    this.visual_canvas?.clear();
 
-    this.visual_canvas?.drawImage(layers.map((l) => l.canvas.node()));
+    for (const layer of layers) {
+      if (this.visual_canvas) {
+        this.visual_canvas.drawFrame({
+          zoomer: this.zoomer,
+          drawables: layer.drawables,
+          config: {
+            highlight: layer.variant,
+          },
+        });
+      }
+    }
   }
 
   public makeInteractive(): void {
