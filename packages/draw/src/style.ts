@@ -44,4 +44,5 @@ const default_styles: GraphStyleConfig = {
   activeNodeRadiusPadding: 1,
   nodeScaleFactor: 0.96,
   minimumNodeSize: 4,
+  dimmedLayerOpacity: 0.4,
 };

@@ -1,11 +1,16 @@
 import { Canvas, Drawable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
-import { HighlightVariant, MindGraphConfig } from './types';
+import { GraphStyleConfig, Focus } from './types';
+
+export interface ArtistArgs {
+  style?: Partial<GraphStyleConfig>;
+  canvas: HTMLCanvasElement;
+}
 
 interface Layer {
   drawables: Drawable[];
-  variant: HighlightVariant;
+  focus: Focus;
 }
 
 export class Artist {
@@ -13,7 +18,7 @@ export class Artist {
   public readonly canvasInitialHeight: number;
   public readonly styles: Styles;
 
-  constructor({ style, canvas }: MindGraphConfig) {
+  constructor({ style, canvas }: ArtistArgs) {
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
     this.canvasInitialHeight = canvas.getBoundingClientRect().height;
 
@@ -29,13 +34,13 @@ export class Artist {
     this.zoomer = new Zoomer();
 
     this.drawables = [];
-    this.baseLayer = {
+    this.base_layer = {
       drawables: [],
-      variant: 'normal',
+      focus: 'neutral',
     };
-    this.activeLayer = {
+    this.active_layer = {
       drawables: [],
-      variant: 'active',
+      focus: 'active',
     };
   }
 
@@ -43,27 +48,6 @@ export class Artist {
     if (isSSR()) return;
     this.drawables = drawables;
     this.redraw();
-  }
-
-  private redraw(): void {
-    this.distribute_drawables();
-    this.update_cursor();
-
-    const layers = [this.baseLayer, this.activeLayer];
-
-    this.visual_canvas?.clear();
-
-    for (const layer of layers) {
-      if (this.visual_canvas) {
-        this.visual_canvas.drawFrame({
-          zoomer: this.zoomer,
-          drawables: layer.drawables,
-          config: {
-            highlight: layer.variant,
-          },
-        });
-      }
-    }
   }
 
   public makeInteractive(): void {
@@ -77,8 +61,35 @@ export class Artist {
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
   private drawables: Drawable[];
-  private baseLayer: Layer;
-  private activeLayer: Layer;
+  private base_layer: Layer;
+  private active_layer: Layer;
+
+  private redraw(): void {
+    this.distribute_drawables();
+    this.update_cursor();
+
+    const layers = [this.base_layer, this.active_layer];
+
+    this.visual_canvas?.clear();
+
+    for (const layer of layers) {
+      if (this.visual_canvas) {
+        this.visual_canvas.drawFrame({
+          zoomer: this.zoomer,
+          drawables: layer.drawables,
+          config: {
+            layer: {
+              opacity:
+                layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1,
+            },
+            drawables: {
+              focus: layer.focus,
+            },
+          },
+        });
+      }
+    }
+  }
 
   private add_window_resize_listener(): void {
     if (isSSR()) return;
@@ -100,30 +111,30 @@ export class Artist {
   }
 
   private distribute_drawables(): void {
-    this.activeLayer.drawables = [];
-    this.baseLayer.drawables = [];
+    this.active_layer.drawables = [];
+    this.base_layer.drawables = [];
 
     for (const d of this.drawables) {
       if (
         this.cursor &&
         d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
-        !this.activeLayer.drawables.includes(d)
+        !this.active_layer.drawables.includes(d)
       ) {
-        this.activeLayer.drawables.push(d);
+        this.active_layer.drawables.push(d);
       } else {
-        this.baseLayer.drawables.push(d);
+        this.base_layer.drawables.push(d);
       }
     }
 
-    if (this.activeLayer.drawables.length) {
-      this.baseLayer.variant = 'dimmed';
+    if (this.active_layer.drawables.length) {
+      this.base_layer.focus = 'inactive';
     } else {
-      this.baseLayer.variant = 'normal';
+      this.base_layer.focus = 'neutral';
     }
   }
 
   private update_cursor(): void {
-    if (this.activeLayer.drawables.length > 0) {
+    if (this.active_layer.drawables.length > 0) {
       this.visual_canvas?.setCursor('pointer');
     } else {
       this.visual_canvas?.setCursor('default');

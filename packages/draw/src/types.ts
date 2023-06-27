@@ -1,12 +1,7 @@
 import type { Node } from '@mindgraph/types';
 import { SimulationNodeDatum } from 'd3-force';
 
-export interface MindGraphConfig {
-  style?: Partial<GraphStyleConfig>;
-  canvas: HTMLCanvasElement;
-}
-
-export type HighlightVariant = 'active' | 'dimmed' | 'normal';
+export type Focus = 'active' | 'neutral' | 'inactive';
 
 export type Circle = {
   x?: number;
@@ -50,6 +45,7 @@ export type GraphStyleConfig = {
   nodeScaleFactor: number;
   minZoom: number;
   maxZoom: number;
+  dimmedLayerOpacity: number;
 };
 
 export type GraphSimulationConfig = {
