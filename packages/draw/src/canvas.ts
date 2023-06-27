@@ -1,25 +1,32 @@
 import { create, select, Selection } from 'd3-selection';
-import { NodeClickEvent, Line, Circle } from './types';
+import { NodeClickEvent, Line, Circle, Focus } from './types';
 import { Zoomer } from './zoomer';
 
 export interface Drawable {
-  draw(canvas: Canvas, highlight: 'active' | 'dimmed' | 'normal'): void;
+  draw(canvas: Canvas, focus: Focus): void;
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
   onClick?(): void;
   onHover?(): void;
 }
 
 export class Canvas {
-  constructor(canvasElement?: HTMLCanvasElement, deviceScale?: number) {
-    this.deviceScale = deviceScale;
+  constructor(
+    canvasElement: HTMLCanvasElement | undefined,
+    config?: {
+      deviceScale?: number;
+      initialWidth?: number;
+      initialHeight?: number;
+    },
+  ) {
+    this.deviceScale = config?.deviceScale;
     this.canvasElement = canvasElement
       ? select(canvasElement)
       : create('canvas');
     this.context = this.canvasElement.node()?.getContext('2d') || undefined;
-    this.resizeCanvas();
+    this.resizeCanvas(config?.initialWidth, config?.initialHeight);
   }
 
-  public resizeCanvas(): void {
+  public resizeCanvas(initialWidth?: number, initialHeight?: number): void {
     const elNode = this.canvasElement.node();
     if (elNode) {
       const currElWidth = elNode.getBoundingClientRect().width;
@@ -30,8 +37,9 @@ export class Canvas {
       const appliedHeight = this.deviceScale
         ? this.deviceScale * currElHeight
         : currElHeight;
-      this.canvasElement.attr('width', appliedWidth);
-      this.canvasElement.attr('height', appliedHeight);
+
+      this.canvasElement.attr('width', initialWidth || appliedWidth);
+      this.canvasElement.attr('height', initialHeight || appliedHeight);
     }
 
     if (this.deviceScale) {
@@ -100,36 +108,42 @@ export class Canvas {
     }
   }
 
-  public drawFrame({
-    zoomer,
-    drawables,
-    activeDrawables,
-  }: {
-    zoomer: Zoomer;
-    drawables: Drawable[];
-    activeDrawables: Drawable[];
-  }) {
-    if (!this.context) return;
-
-    this.context.save();
-
-    this.context.clearRect(
+  public clear() {
+    this.context?.clearRect(
       0,
       0,
       Number(this.canvasElement.attr('width')),
       Number(this.canvasElement.attr('height')),
     );
+  }
+
+  public drawFrame({
+    zoomer,
+    drawables,
+    config,
+  }: {
+    zoomer: Zoomer;
+    drawables: Drawable[];
+    config: {
+      layer: {
+        opacity: number;
+      };
+      drawables: {
+        focus: Focus;
+      };
+    };
+  }) {
+    if (!this.context) return;
+
+    this.context.save();
+
     this.context.translate(zoomer.x, zoomer.y);
     this.context.scale(zoomer.k, zoomer.k);
+    this.context.globalAlpha = config.layer.opacity;
 
-    drawables.forEach((d) => {
-      const highlight = activeDrawables.includes(d)
-        ? 'active'
-        : activeDrawables.length > 0
-        ? 'dimmed'
-        : 'normal';
-      d.draw(this, highlight);
-    });
+    for (const drawable of drawables) {
+      drawable.draw(this, config.drawables.focus);
+    }
 
     this.context.restore();
   }

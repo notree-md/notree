@@ -1,14 +1,24 @@
 import { Canvas, Drawable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
-import { MindGraphConfig } from './types';
+import { GraphStyleConfig, Focus } from './types';
+
+export interface ArtistArgs {
+  style?: Partial<GraphStyleConfig>;
+  canvas: HTMLCanvasElement;
+}
+
+interface Layer {
+  drawables: Drawable[];
+  focus: Focus;
+}
 
 export class Artist {
   public readonly canvasInitialWidth: number;
   public readonly canvasInitialHeight: number;
+  public readonly styles: Styles;
 
-  constructor({ style, canvas }: MindGraphConfig) {
-    this.canvasElement = canvas;
+  constructor({ style, canvas }: ArtistArgs) {
     this.canvasInitialWidth = canvas.getBoundingClientRect().width;
     this.canvasInitialHeight = canvas.getBoundingClientRect().height;
 
@@ -18,23 +28,20 @@ export class Artist {
       this.canvasInitialHeight,
     );
 
-    this.visual_canvas = new Canvas(
-      this.canvasElement,
-      this.styles.deviceScale,
-    );
-
+    this.visual_canvas = new Canvas(canvas, {
+      deviceScale: this.styles.deviceScale,
+    });
     this.zoomer = new Zoomer();
+
     this.drawables = [];
-    this.activeDrawables = [];
-
-    this.add_window_resize_listener();
-    this.add_zoom_listener();
-    this.add_click_handler();
-    this.add_mousemove_handler();
-  }
-
-  public getStyles(): Styles {
-    return this.styles;
+    this.base_layer = {
+      drawables: [],
+      focus: 'neutral',
+    };
+    this.active_layer = {
+      drawables: [],
+      focus: 'active',
+    };
   }
 
   public draw(drawables: Drawable[]): void {
@@ -43,22 +50,46 @@ export class Artist {
     this.redraw();
   }
 
-  private redraw(): void {
-    this.updateActiveDrawables();
-    this.visual_canvas?.drawFrame({
-      zoomer: this.zoomer,
-      drawables: this.drawables,
-      activeDrawables: this.activeDrawables,
-    });
+  public makeInteractive(): void {
+    this.add_window_resize_listener();
+    this.add_zoom_listener();
+    this.add_click_handler();
+    this.add_mousemove_handler();
   }
 
-  private canvasElement: HTMLCanvasElement;
   private visual_canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
-  private styles: Styles;
   private zoomer: Zoomer;
-  private activeDrawables: Drawable[];
   private drawables: Drawable[];
+  private base_layer: Layer;
+  private active_layer: Layer;
+
+  private redraw(): void {
+    this.distribute_drawables();
+    this.update_cursor();
+
+    const layers = [this.base_layer, this.active_layer];
+
+    this.visual_canvas?.clear();
+
+    for (const layer of layers) {
+      if (this.visual_canvas) {
+        this.visual_canvas.drawFrame({
+          zoomer: this.zoomer,
+          drawables: layer.drawables,
+          config: {
+            layer: {
+              opacity:
+                layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1,
+            },
+            drawables: {
+              focus: layer.focus,
+            },
+          },
+        });
+      }
+    }
+  }
 
   private add_window_resize_listener(): void {
     if (isSSR()) return;
@@ -79,21 +110,31 @@ export class Artist {
     );
   }
 
-  private updateActiveDrawables(): void {
-    this.activeDrawables = [];
+  private distribute_drawables(): void {
+    this.active_layer.drawables = [];
+    this.base_layer.drawables = [];
+
     for (const d of this.drawables) {
       if (
         this.cursor &&
         d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
-        !this.activeDrawables.includes(d)
+        !this.active_layer.drawables.includes(d)
       ) {
-        if (d.onHover) {
-          d.onHover();
-        }
-        this.activeDrawables.push(d);
+        this.active_layer.drawables.push(d);
+      } else {
+        this.base_layer.drawables.push(d);
       }
     }
-    if (this.activeDrawables.length > 0) {
+
+    if (this.active_layer.drawables.length) {
+      this.base_layer.focus = 'inactive';
+    } else {
+      this.base_layer.focus = 'neutral';
+    }
+  }
+
+  private update_cursor(): void {
+    if (this.active_layer.drawables.length > 0) {
       this.visual_canvas?.setCursor('pointer');
     } else {
       this.visual_canvas?.setCursor('default');
@@ -113,7 +154,7 @@ export class Artist {
   private add_mousemove_handler(): void {
     this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
-      this.updateActiveDrawables();
+      this.distribute_drawables();
     });
   }
 }
