@@ -5,11 +5,14 @@ import {
   HIDDEN_FILES_REGEX,
   LINK_CONTENT_REGEX,
   MARKDOWN_EXTENSION,
-} from './constants';
+} from '../constants';
+import { Provider } from '../types';
 
-export async function readFromFileSystem(path: string): Promise<GraphData> {
-  return build_graph(path);
-}
+export const FileSystem: Provider<{ path: string }> = {
+  async read({ path }) {
+    return build_graph(path);
+  },
+};
 
 async function build_graph(
   path: string,
