@@ -23,6 +23,7 @@
     "rollup": "^3.23.0"
   },
   "dependencies": {
-    "@mindgraph/types": "workspace:*"
+    "@mindgraph/types": "workspace:*",
+    "axios": "^1.4.0"
   }
 }
