@@ -1,0 +1,111 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FileSystem Provider > should produce the expected graph 1`] = `
+{
+  "links": [
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med1.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med2.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small1.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small2.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small3.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small4.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small5.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small6.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med2.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small4.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med2.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small5.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med2.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small6.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med1.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small1.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med1.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small2.md",
+    },
+    {
+      "source": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med1.md",
+      "target": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small3.md",
+    },
+  ],
+  "nodes": [
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/big.md",
+      "linkCount": 8,
+      "name": "big.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small6.md",
+      "linkCount": 0,
+      "name": "small6.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small2.md",
+      "linkCount": 0,
+      "name": "small2.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small3.md",
+      "linkCount": 0,
+      "name": "small3.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small4.md",
+      "linkCount": 0,
+      "name": "small4.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small5.md",
+      "linkCount": 0,
+      "name": "small5.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/small/small1.md",
+      "linkCount": 0,
+      "name": "small1.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med2.md",
+      "linkCount": 3,
+      "name": "med2.md",
+    },
+    {
+      "id": "/Users/jeremiah.tabb/code/@jollyjerr/mindgraph/packages/draw/example/notes/med/med1.md",
+      "linkCount": 3,
+      "name": "med1.md",
+    },
+  ],
+}
+`;

@@ -5,7 +5,8 @@
   "scripts": {
     "build": "rollup -c",
     "lint": "eslint src/**",
-    "typecheck": "tsc -noEmit"
+    "typecheck": "tsc -noEmit",
+    "test": "vitest"
   },
   "type": "module",
   "author": "jollyjerr <jollyjerr@gmail.com>",

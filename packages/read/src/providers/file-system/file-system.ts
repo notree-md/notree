@@ -5,8 +5,8 @@ import {
   HIDDEN_FILES_REGEX,
   LINK_CONTENT_REGEX,
   MARKDOWN_EXTENSION,
-} from '../constants';
-import { Provider } from '../types';
+} from '../../constants';
+import { Provider } from '../../types';
 
 export const FileSystem: Provider<{ path: string }> = {
   async read({ path }) {
