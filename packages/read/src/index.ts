@@ -1,1 +1,2 @@
-export * from './providers';
+export { FileSystem } from './file-system';
+export { GitHub } from './github';
