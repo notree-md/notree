@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { describe, it, assert } from 'vitest';
+import { describe, it } from 'vitest';
 import { GitHub } from './github';
 
 describe('github', () => {
