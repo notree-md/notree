@@ -25,6 +25,6 @@
   },
   "dependencies": {
     "@mindgraph/types": "workspace:*",
-    "axios": "^1.4.0"
+    "octokit": "^2.1.0"
   }
 }

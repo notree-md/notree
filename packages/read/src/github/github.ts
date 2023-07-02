@@ -1,68 +1,102 @@
-import { Axios } from 'axios';
+import { GraphData } from '@mindgraph/types';
 import { Provider } from '../types';
-import { RefResponse, TreeResponse } from './types';
+import { Octokit } from 'octokit';
+import { HIDDEN_FILES_REGEX } from '../constants';
 
-const GITHUB_API_VERSION = '2022-11-28';
-const GITHUB_BASE_URL = 'https://api.github.com';
 const DEFAULT_BRANCH_NAME = 'main';
+const DEFAULT_BASE_PATH = '';
 
 export interface GitHubProviderArgs {
   token: string;
   owner: string;
   repo: string;
   branch?: string;
+  basePath?: string;
 }
 
 export const GitHub: Provider<GitHubProviderArgs> = {
-  async read({ token, owner, repo, branch = DEFAULT_BRANCH_NAME }) {
-    const instance = new GitHubApi(token);
+  async read({
+    token,
+    owner,
+    repo,
+    branch = DEFAULT_BRANCH_NAME,
+    basePath = DEFAULT_BASE_PATH,
+  }) {
+    const octo = new Octokit({ auth: token });
+
     const {
-      data: {
-        object: { sha: treeSha },
-      },
-    } = await instance.getReference({ repo, owner, branch });
-    const { data } = await instance.getTree({ repo, owner, treeSha });
-    return {};
+      data: { ref },
+    } = await octo.rest.git.getRef({
+      owner,
+      repo,
+      ref: `heads/${branch}`,
+    });
+
+    return build_graph(octo, { owner, repo, path: basePath, ref });
   },
 };
 
-class GitHubApi {
-  constructor(token: string) {
-    this.instance = authenticated_instance(token);
-  }
+type GitHubResult = {
+  name: string;
+  type: 'file' | 'dir';
+  url: string;
+  download_url: string | null;
+};
 
-  /** https://docs.github.com/en/rest/git/refs?apiVersion=2022-11-28#get-a-reference */
-  public async getReference({
-    repo,
-    owner,
-    branch,
-  }: Pick<GitHubProviderArgs, 'repo' | 'owner' | 'branch'>) {
-    return this.instance.get<RefResponse>(
-      `/repos/${owner}/${repo}/git/ref/${branch}`,
+type BuildGraphArgs = Pick<GitHubProviderArgs, 'owner' | 'repo'> & {
+  path: string;
+  ref: string;
+};
+
+type AddResultToGraphArgs = BuildGraphArgs & { result: GitHubResult };
+
+async function build_graph(
+  octo: Octokit,
+  { owner, repo, path, ref }: BuildGraphArgs,
+  graph: GraphData = { nodes: [], links: [] },
+) {
+  const dir = await octo.rest.repos
+    .getContent({
+      owner,
+      repo,
+      path,
+      ref,
+    })
+    .then((response) => response.data as GitHubResult[]);
+
+  for (const result of dir) {
+    await add_result_to_graph(
+      octo,
+      {
+        owner,
+        repo,
+        path,
+        ref,
+        result,
+      },
+      graph,
     );
   }
 
-  /** https://docs.github.com/en/rest/git/trees?apiVersion=2022-11-28#get-a-tree */
-  public async getTree({
-    repo,
-    owner,
-    treeSha,
-  }: Pick<GitHubProviderArgs, 'repo' | 'owner'> & { treeSha: string }) {
-    return this.instance.get<TreeResponse>(
-      `/repos/${owner}/${repo}/git/trees/${treeSha}`,
-    );
-  }
-
-  private instance: Axios;
+  return graph;
 }
 
-function authenticated_instance(token: string) {
-  return new Axios({
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': GITHUB_API_VERSION,
-    },
-    baseURL: GITHUB_BASE_URL,
-  });
+async function add_result_to_graph(
+  octo: Octokit,
+  { result, path, owner, repo, ref }: AddResultToGraphArgs,
+  graph: GraphData,
+) {
+  if (HIDDEN_FILES_REGEX.test(result.name)) return;
+
+  const resultPath = `${path}/${result.name}`;
+
+  if (result.type === 'dir') {
+    await build_graph(octo, { owner, repo, path, ref }, graph);
+  } else if (result.type === 'file') {
+    //
+  }
+}
+
+async function add_links_to_graph() {
+  //
 }
