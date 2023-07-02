@@ -1,40 +1,16 @@
 import { Axios } from 'axios';
 import { Provider } from '../types';
+import { RefResponse, TreeResponse } from './types';
 
 const GITHUB_API_VERSION = '2022-11-28';
 const GITHUB_BASE_URL = 'https://api.github.com';
 const DEFAULT_BRANCH_NAME = 'main';
 
-interface GitHubProviderArgs {
+export interface GitHubProviderArgs {
   token: string;
   owner: string;
   repo: string;
   branch?: string;
-}
-
-interface RefResponse {
-  ref: string;
-  node_id: string;
-  url: string;
-  object: {
-    type: string;
-    sha: string;
-    url: string;
-  };
-}
-
-interface TreeResponse {
-  sha: string;
-  url: string;
-  truncated: boolean;
-  tree: {
-    path: string;
-    mode: string;
-    type: string;
-    size: string;
-    sha: string;
-    url: string;
-  }[];
 }
 
 export const GitHub: Provider<GitHubProviderArgs> = {

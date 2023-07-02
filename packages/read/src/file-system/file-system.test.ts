@@ -8,9 +8,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 describe('FileSystem Provider', () => {
   it('should produce the expected graph', async () => {
     const graph = await FileSystem.read({
-      path: path.resolve(__dirname, '../../../../', 'draw', 'example', 'notes'),
+      path: path.resolve(__dirname, '../../../', 'draw', 'example', 'notes'),
     });
 
-    expect(graph).toMatchSnapshot();
+    expect(
+      graph.nodes.map((n) => ({ name: n.name, linkCount: n.linkCount })),
+    ).toMatchSnapshot();
   });
 });

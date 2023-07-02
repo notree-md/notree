@@ -8,7 +8,11 @@ import {
 } from '../constants';
 import { Provider } from '../types';
 
-export const FileSystem: Provider<{ path: string }> = {
+export interface FileSystemProviderArgs {
+  path: string;
+}
+
+export const FileSystem: Provider<FileSystemProviderArgs> = {
   async read({ path }) {
     return build_graph(path);
   },

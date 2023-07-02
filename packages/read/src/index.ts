@@ -1,2 +1,2 @@
-export { FileSystem } from './file-system';
-export { GitHub } from './github';
+export { FileSystem, type FileSystemProviderArgs } from './file-system';
+export { GitHub, type GitHubProviderArgs } from './github';
