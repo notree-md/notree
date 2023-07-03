@@ -65,19 +65,21 @@ async function build_graph(
     })
     .then((response) => response.data as GitHubResult[]);
 
-  for (const result of dir) {
-    await add_result_to_graph(
-      octo,
-      {
-        owner,
-        repo,
-        path,
-        ref,
-        result,
-      },
-      graph,
-    );
-  }
+  await Promise.all(
+    dir.map((result) =>
+      add_result_to_graph(
+        octo,
+        {
+          owner,
+          repo,
+          path,
+          ref,
+          result,
+        },
+        graph,
+      ),
+    ),
+  );
 
   return graph;
 }
