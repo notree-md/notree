@@ -1,11 +1,7 @@
 import { GraphData } from '@mindgraph/types';
 import * as fs from 'fs';
 import * as readline from 'node:readline';
-import {
-  HIDDEN_FILES_REGEX,
-  LINK_CONTENT_REGEX,
-  MARKDOWN_EXTENSION,
-} from '../constants';
+import { HIDDEN_FILES_REGEX, extractLinksFromLine } from '../common';
 import { Provider } from '../types';
 
 export interface FileSystemProviderArgs {
@@ -44,6 +40,7 @@ async function add_dirent_to_graph(
     await build_graph(direntPath, graph);
   } else if (dirent.isFile()) {
     const linkCount = await add_links_to_graph(direntPath, graph);
+
     graph.nodes.push({
       id: direntPath,
       name: dirent.name,
@@ -62,42 +59,13 @@ async function add_links_to_graph(
   const lines = readline.createInterface({ input: fileStream });
 
   for await (const line of lines) {
-    const links = line.match(LINK_CONTENT_REGEX) || [];
+    const links = extractLinksFromLine(line, filePath);
+    linkCount += links.length;
 
     for (const link of links) {
-      const path = LINK_CONTENT_REGEX.exec(link)?.at(1);
-
-      if (is_valid_link_path(path)) {
-        linkCount++;
-
-        const linkDirections = path.split('/');
-        const pathToTargetFile = filePath.split('/');
-
-        pathToTargetFile.pop();
-
-        for (const direction of linkDirections) {
-          switch (direction) {
-            case '.':
-              break;
-            case '..':
-              pathToTargetFile.pop();
-              break;
-            default:
-              pathToTargetFile.push(direction);
-          }
-        }
-
-        graph.links.push({
-          source: filePath,
-          target: pathToTargetFile.join('/'),
-        });
-      }
+      graph.links.push(link);
     }
   }
 
   return linkCount;
-}
-
-function is_valid_link_path(path: string | undefined): path is string {
-  return !!(path && !path.includes('://') && path.includes(MARKDOWN_EXTENSION));
 }

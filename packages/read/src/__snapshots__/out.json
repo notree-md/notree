@@ -1,0 +1,98 @@
+{
+  "links": [
+    {
+      "source": "big.md",
+      "target": "med1.md"
+    },
+    {
+      "source": "big.md",
+      "target": "med2.md"
+    },
+    {
+      "source": "big.md",
+      "target": "small1.md"
+    },
+    {
+      "source": "big.md",
+      "target": "small2.md"
+    },
+    {
+      "source": "big.md",
+      "target": "small3.md"
+    },
+    {
+      "source": "big.md",
+      "target": "small4.md"
+    },
+    {
+      "source": "big.md",
+      "target": "small5.md"
+    },
+    {
+      "source": "big.md",
+      "target": "small6.md"
+    },
+    {
+      "source": "med2.md",
+      "target": "small4.md"
+    },
+    {
+      "source": "med2.md",
+      "target": "small5.md"
+    },
+    {
+      "source": "med2.md",
+      "target": "small6.md"
+    },
+    {
+      "source": "med1.md",
+      "target": "small1.md"
+    },
+    {
+      "source": "med1.md",
+      "target": "small2.md"
+    },
+    {
+      "source": "med1.md",
+      "target": "small3.md"
+    }
+  ],
+  "nodes": [
+    {
+      "linkCount": 8,
+      "name": "big.md"
+    },
+    {
+      "linkCount": 0,
+      "name": "small6.md"
+    },
+    {
+      "linkCount": 0,
+      "name": "small2.md"
+    },
+    {
+      "linkCount": 0,
+      "name": "small3.md"
+    },
+    {
+      "linkCount": 0,
+      "name": "small4.md"
+    },
+    {
+      "linkCount": 0,
+      "name": "small5.md"
+    },
+    {
+      "linkCount": 0,
+      "name": "small1.md"
+    },
+    {
+      "linkCount": 3,
+      "name": "med2.md"
+    },
+    {
+      "linkCount": 3,
+      "name": "med1.md"
+    }
+  ]
+}
