@@ -1,5 +1,11 @@
 # @mindgraph/draw
 
+## 0.9.0
+
+### Minor Changes
+
+- ef4ddbc: feat: support layers of drawables
+
 ## 0.8.0
 
 ### Minor Changes
