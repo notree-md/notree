@@ -1,5 +1,4 @@
 ---
-'@mindgraph/draw': minor
 '@mindgraph/read': minor
 ---
 
