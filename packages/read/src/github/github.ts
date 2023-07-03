@@ -2,7 +2,11 @@ import axios from 'axios';
 import { GraphData } from '@mindgraph/types';
 import { Provider } from '../types';
 import { Octokit } from 'octokit';
-import { HIDDEN_FILES_REGEX } from '../constants';
+import {
+  HIDDEN_FILES_REGEX,
+  LINK_CONTENT_REGEX,
+  MARKDOWN_EXTENSION,
+} from '../constants';
 
 const DEFAULT_BRANCH_NAME = 'main';
 const DEFAULT_BASE_PATH = '';
@@ -92,11 +96,11 @@ async function add_result_to_graph(
   const resultPath = `${path}/${result.name}`;
 
   if (result.type === 'dir') {
-    await build_graph(octo, { owner, repo, path, ref }, graph);
+    await build_graph(octo, { owner, repo, path: resultPath, ref }, graph);
   } else if (result.type === 'file') {
     const linkCount = await add_links_to_graph(
       octo,
-      { result, path, owner, repo, ref },
+      { result, path: resultPath, owner, repo, ref },
       graph,
     );
     graph.nodes.push({
@@ -109,18 +113,55 @@ async function add_result_to_graph(
 
 async function add_links_to_graph(
   octo: Octokit,
-  { result }: AddResultToGraphArgs,
+  { result, path: filePath }: AddResultToGraphArgs,
   graph: GraphData,
 ): Promise<number> {
   if (!result.download_url) return 0;
 
   let linkCount = 0;
 
-  const content = await axios
+  const lines = await axios
     .get<string>(result.download_url)
-    .then((r) => r.data);
+    .then((r) => r.data)
+    .then((c) => c.split('\n'));
 
-  console.log(content);
+  for await (const line of lines) {
+    const links = line.match(LINK_CONTENT_REGEX) || [];
+
+    for (const link of links) {
+      const path = LINK_CONTENT_REGEX.exec(link)?.at(1);
+
+      if (is_valid_link_path(path)) {
+        linkCount++;
+
+        const linkDirections = path.split('/');
+        const pathToTargetFile = filePath.split('/');
+
+        pathToTargetFile.pop();
+
+        for (const direction of linkDirections) {
+          switch (direction) {
+            case '.':
+              break;
+            case '..':
+              pathToTargetFile.pop();
+              break;
+            default:
+              pathToTargetFile.push(direction);
+          }
+        }
+
+        graph.links.push({
+          source: filePath,
+          target: pathToTargetFile.join('/'),
+        });
+      }
+    }
+  }
 
   return linkCount;
+}
+
+function is_valid_link_path(path: string | undefined): path is string {
+  return !!(path && !path.includes('://') && path.includes(MARKDOWN_EXTENSION));
 }
