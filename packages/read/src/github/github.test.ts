@@ -11,7 +11,7 @@ describe('GitHub provider', () => {
     const token = process.env.GITHUB_TOKEN;
     assert(token && token.length > 1, 'No GitHub token found! 😱');
 
-    const branch = process.env.GITHUB_REF_NAME || 'main';
+    const branch = process.env.GITHUB_HEAD_REF || 'main';
     console.info(`Using test data from ref: ${branch} 😎`);
 
     const graph = await GitHub.read({
