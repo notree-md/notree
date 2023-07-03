@@ -23,10 +23,10 @@ export function extractLinksFromLine(
   filePath: string,
 ): GraphData['links'] {
   const formattedLinks = [];
-  const links = line.match(LINK_CONTENT_REGEX) || [];
+  const links = line.matchAll(LINK_CONTENT_REGEX) || [];
 
   for (const link of links) {
-    const path = LINK_CONTENT_REGEX.exec(link)?.at(1);
+    const path = link.at(1);
 
     if (is_valid_link_path(path)) {
       const linkDirections = path.split('/');
