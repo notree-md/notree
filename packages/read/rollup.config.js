@@ -5,6 +5,6 @@ export default {
   output: {
     dir: 'dist',
   },
-  external: ['node:readline', 'fs'],
+  external: ['node:readline', 'fs', 'axios', 'octokit'],
   plugins: [typescript()],
 };

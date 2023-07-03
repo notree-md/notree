@@ -1,10 +1,13 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import { assert, describe, expect, it } from 'vitest';
 import { GitHub } from './github';
 import { formatGraphForTestSnapshot } from '../common';
+import path from 'path';
 
-describe('github', () => {
-  it('should run a test', async () => {
+config({ path: path.join(__dirname, '../../../../.env') });
+
+describe('GitHub provider', () => {
+  it('should produce the expected graph', async () => {
     const token = process.env.GITHUB_TOKEN;
     assert(token && token.length > 1, 'No GitHub token found! 😱');
 

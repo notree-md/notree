@@ -6,11 +6,15 @@ export const LINK_CONTENT_REGEX = /\]\((.*?)\)/g;
 
 export function formatGraphForTestSnapshot(data: GraphData) {
   return {
-    nodes: data.nodes.map((n) => ({ name: n.name, linkCount: n.linkCount })),
-    links: data.links.map((l) => ({
-      source: l.source.split('/').at(-1),
-      target: l.target.split('/').at(-1),
-    })),
+    nodes: data.nodes
+      .map((n) => ({ name: n.name, linkCount: n.linkCount }))
+      .sort((a, b) => (a.name > b.name ? 1 : -1)),
+    links: data.links
+      .map((l) => ({
+        source: l.source.split('/').at(-1)!,
+        target: l.target.split('/').at(-1),
+      }))
+      .sort((a, b) => (a.source > b.source ? 1 : -1)),
   };
 }
 

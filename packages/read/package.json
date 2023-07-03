@@ -4,7 +4,7 @@
   "description": "data loaders for @mindgraph/draw",
   "scripts": {
     "build": "rollup -c",
-    "lint": "eslint src/**",
+    "lint": "eslint ./src/**/*.ts",
     "typecheck": "tsc -noEmit",
     "test": "vitest"
   },
@@ -23,9 +23,11 @@
     "@types/node": "^20.2.5",
     "rollup": "^3.23.0"
   },
-  "dependencies": {
-    "@mindgraph/types": "workspace:*",
+  "peerDependencies": {
     "axios": "^1.4.0",
     "octokit": "^2.1.0"
+  },
+  "dependencies": {
+    "@mindgraph/types": "workspace:*"
   }
 }
