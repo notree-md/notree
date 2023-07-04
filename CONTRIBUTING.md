@@ -53,4 +53,5 @@ Make sure to run `pnpm changeset` before opening a pr and using the cli tool to
 describe your changes.
 
 GitHub will run your changes through a ci pipeline, but you can see if it will
-pass locally by running `pnpm run ci`.
+pass locally by running `pnpm run ci`. **If you want tests to pass you will need a
+GitHub token as described by the GitHub provider docs in the read package.**

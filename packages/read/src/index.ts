@@ -1,1 +1,2 @@
-export { readFromFileSystem } from './read-from-file-system';
+export { FileSystem, type FileSystemProviderArgs } from './file-system';
+export { GitHub, type GitHubProviderArgs } from './github';

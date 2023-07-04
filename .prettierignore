@@ -3,3 +3,5 @@
 **/*dist
 
 *.yaml
+
+packages/read/src/__snapshots__/**/*

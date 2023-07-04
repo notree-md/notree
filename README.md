@@ -20,10 +20,14 @@ npm install @mindgraph/read @mindgraph/draw
 
 ```tsx
 // On the server
-import { readFromFileSystem } from '@mindgraph/read';
+import { FileSystem } from '@mindgraph/read';
 
 app.get('/api/v1/notes', async (res) => {
-  const notes = await readFromFileSystem('path/to/obsidian/directory');
+  const notes = await FileSystem.read({
+    path: 'path/to/obsidian/directory',
+  });
+
+  res.send(notes);
 });
 
 // On the client
