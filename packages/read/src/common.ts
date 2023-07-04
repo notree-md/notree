@@ -3,6 +3,7 @@ import { GraphData } from '@mindgraph/types';
 export const MARKDOWN_EXTENSION = '.md';
 export const HIDDEN_FILES_REGEX = /^\./;
 export const LINK_CONTENT_REGEX = /\]\((.*?)\)/g;
+export const PROTOCOL_DELIMITER = '://';
 
 export function formatGraphForTestSnapshot(data: GraphData) {
   return {
@@ -29,20 +30,20 @@ export function extractLinksFromLine(
     const path = link.at(1);
 
     if (is_valid_link_path(path)) {
-      const linkDirections = path.split('/');
+      const linkPathParts = path.split('/');
       const pathToTargetFile = filePath.split('/');
 
       pathToTargetFile.pop();
 
-      for (const direction of linkDirections) {
-        switch (direction) {
+      for (const part of linkPathParts) {
+        switch (part) {
           case '.':
             break;
           case '..':
             pathToTargetFile.pop();
             break;
           default:
-            pathToTargetFile.push(direction);
+            pathToTargetFile.push(part);
         }
       }
 
@@ -57,5 +58,9 @@ export function extractLinksFromLine(
 }
 
 function is_valid_link_path(path: string | undefined): path is string {
-  return !!(path && !path.includes('://') && path.includes(MARKDOWN_EXTENSION));
+  return !!(
+    path &&
+    !path.includes(PROTOCOL_DELIMITER) &&
+    path.includes(MARKDOWN_EXTENSION)
+  );
 }
