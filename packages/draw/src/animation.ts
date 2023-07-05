@@ -96,8 +96,9 @@ export class Animation<T extends AnimateableProperty> {
     const animationPercentage = easingFunc(
       Math.min(1, elapsedTime / this.duration),
     );
+    let result;
     if (typeof this.state.initial == 'number') {
-      return this.numericLerp(
+      result = this.numericLerp(
         this.state.initial,
         this.state.desired as number,
         animationPercentage,
@@ -110,9 +111,12 @@ export class Animation<T extends AnimateableProperty> {
         g: this.numericLerp(initRgb.g, desiredRgb.g, animationPercentage),
         b: this.numericLerp(initRgb.b, desiredRgb.b, animationPercentage),
       };
-      return rgbToHex(currentRgb.r, currentRgb.g, currentRgb.b) as T;
+      result = rgbToHex(currentRgb.r, currentRgb.g, currentRgb.b) as T;
+    } else {
+      result = 0 as T;
     }
-    return 0 as T;
+    this.state.current = result;
+    return result;
   }
   public state: AnimationState<T>;
 
