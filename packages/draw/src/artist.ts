@@ -3,7 +3,7 @@ import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
 import { Animation, AnimationConfig } from './animation';
-import { TransitionManager } from './transition';
+import { LayerTransition, TransitionManager } from './transition';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
@@ -93,6 +93,69 @@ export class Artist {
   private layers: Layer[];
   private transitionManager: TransitionManager;
 
+  private groupByZindex(el: { drawables: Drawable[] }) {
+    return el.drawables.reduce<Record<number, Drawable[]>>((a, e) => {
+      const zIndex = e.zIndex ? e.zIndex : 0;
+      if (zIndex in a) {
+        a[zIndex].push(e);
+      } else {
+        a[zIndex] = [e];
+      }
+      return a;
+    }, {});
+  }
+
+  /** 
+      Merge transition drawables in sequence into their target layers,
+      breaking up new layers based on zIndex, allowing a transition's drawables 
+      to fake their zIndex as if they were actually on the target layer
+  */
+  private mergeTransitionsIntoLayers() {
+    const mergeTransitionsIntoLayers: Layer[] = [];
+    const transitions = this.transitionManager.getTransitions();
+    for (const layer of this.layers) {
+      const matchingTransitions = transitions.filter(
+        (t) => t.toLayer === layer,
+      );
+      if (matchingTransitions.length === 0) {
+        mergeTransitionsIntoLayers.push(layer);
+        continue;
+      }
+      const zIndexMappedLayer = this.groupByZindex(layer);
+      const zIndexMappedTransitions = matchingTransitions.map((e) => {
+        return { orig: e, zIndexMapped: this.groupByZindex(e) };
+      });
+      const zIndexes = [
+        ...new Set(
+          Object.keys(zIndexMappedLayer)
+            .concat(
+              zIndexMappedTransitions.flatMap((e) =>
+                Object.keys(e.zIndexMapped),
+              ),
+            )
+            .sort(),
+        ),
+      ];
+      zIndexes.forEach((zIndex) => {
+        if (zIndex in zIndexMappedLayer) {
+          mergeTransitionsIntoLayers.push({
+            ...layer,
+            drawables: zIndexMappedLayer[Number(zIndex)],
+          });
+        }
+        zIndexMappedTransitions.forEach((e) => {
+          if (zIndex in e.zIndexMapped) {
+            mergeTransitionsIntoLayers.push({
+              ...e.orig,
+              drawables: e.zIndexMapped[Number(zIndex)],
+            });
+          }
+        });
+      });
+    }
+    return mergeTransitionsIntoLayers;
+  }
+
   private redraw(): void {
     this.distribute_drawables();
     this.update_cursor();
@@ -107,10 +170,8 @@ export class Artist {
 
     this.transitionManager.updateTransitions();
 
-    for (const layer of [
-      ...this.layers,
-      ...this.transitionManager.getTransitions(),
-    ]) {
+    const mergeTransitionsIntoLayers = this.mergeTransitionsIntoLayers();
+    for (const layer of mergeTransitionsIntoLayers) {
       if (this.visual_canvas) {
         let layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;

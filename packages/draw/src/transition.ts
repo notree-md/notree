@@ -3,7 +3,7 @@ import { Animation, AnimationConfig } from './animation';
 import { Layer } from './artist';
 import { Focus } from './types';
 
-class LayerTransition {
+export class LayerTransition {
   public name: string;
   public drawables: Drawable[];
   public focus: Focus;
