@@ -3,7 +3,7 @@ import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
 import { Animation, AnimationConfig } from './animation';
-import { LayerTransition, TransitionManager } from './transition';
+import { TransitionManager } from './transition';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
