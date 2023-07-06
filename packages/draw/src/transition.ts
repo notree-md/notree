@@ -8,6 +8,7 @@ class LayerTransition {
   public drawables: Drawable[];
   public focus: Focus;
   public animation?: Animation<number>;
+  public toLayer: Layer;
 
   public constructor({
     name,
@@ -51,7 +52,6 @@ class LayerTransition {
     });
   }
 
-  private toLayer: Layer;
   private event: Animation<number>;
 }
 
@@ -102,11 +102,6 @@ export class TransitionManager {
     if (!targetLayer.drawables.includes(drawable)) {
       if (this.remove_from_layer_if_exists(sourceLayer, drawable)) {
         animationLayer.animation = new Animation(animationConfig);
-        if (activeTransitionWithDrawable) {
-          // If the current drawable is already part of a transition, this is most likely
-          //   a re-trigger of a previous transition and we need to start it over
-          this.removeTransition(activeTransitionWithDrawable);
-        }
         this.create_or_add_to_transition({
           name: transitionName,
           drawable: drawable,
@@ -114,8 +109,13 @@ export class TransitionManager {
           toLayer: targetLayer,
           duration: transitionDuration,
         });
-      } else {
+      } else if (!activeTransitionWithDrawable) {
         targetLayer.drawables.push(drawable);
+      } else if (activeTransitionWithDrawable) {
+        if (activeTransitionWithDrawable.name !== transitionName) {
+          this.removeTransition(activeTransitionWithDrawable);
+          animationLayer.animation = new Animation(animationConfig);
+        }
       }
     }
   }
