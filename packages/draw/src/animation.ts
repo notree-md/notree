@@ -45,18 +45,15 @@ function easeOut(per: number) {
   return flip(flip(per) ** 2);
 }
 
+export type AnimationConfig<T> = {
+  from: T;
+  to: T;
+  easing: Easing;
+  duration: number;
+};
+
 export class Animation<T extends AnimateableProperty> {
-  public constructor({
-    from,
-    to,
-    easing,
-    duration,
-  }: {
-    from: T;
-    to: T;
-    easing: Easing;
-    duration: number;
-  }) {
+  public constructor({ from, to, easing, duration }: AnimationConfig<T>) {
     this.state = {
       initial: from,
       current: from,

@@ -7,7 +7,10 @@ import { RenderableNode } from './node';
 import { Focus } from '../types';
 
 export class RenderableLink implements Drawable {
+  public zIndex?: number | undefined;
+
   constructor(simLink: ConfiguredSimulationLink, styles: Styles) {
+    this.zIndex = 1;
     this.sim_link = simLink;
     this.styles = styles;
     this.current_link_color = this.styles.linkColor;

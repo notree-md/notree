@@ -2,7 +2,7 @@ import { Canvas, Drawable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
-import { Animation } from './animation';
+import { Animation, AnimationConfig } from './animation';
 import { TransitionManager } from './transition';
 
 export interface ArtistArgs {
@@ -15,6 +15,28 @@ export interface Layer {
   focus: Focus;
   animation?: Animation<number>;
 }
+
+const DIMMING_ANIMATION_CONFIG: (styles: Styles) => AnimationConfig<number> = (
+  styles: Styles,
+) => {
+  return {
+    duration: 1,
+    easing: 'easeout',
+    from: 1,
+    to: styles.dimmedLayerOpacity,
+  };
+};
+
+const BRIGHTENING_ANIMATION_CONFIG: (
+  styles: Styles,
+) => AnimationConfig<number> = (styles: Styles) => {
+  const dimming = DIMMING_ANIMATION_CONFIG(styles);
+  return {
+    ...dimming,
+    from: dimming.to,
+    to: dimming.from,
+  };
+};
 
 export class Artist {
   public readonly canvasInitialWidth: number;
@@ -85,7 +107,10 @@ export class Artist {
 
     this.transitionManager.updateTransitions();
 
-    for (const layer of this.layers) {
+    for (const layer of [
+      ...this.layers,
+      ...this.transitionManager.getTransitions(),
+    ]) {
       if (this.visual_canvas) {
         let layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
@@ -104,27 +129,6 @@ export class Artist {
             },
             drawables: {
               focus: layer.focus,
-            },
-          },
-        });
-      }
-    }
-
-    for (const layerTransition of this.transitionManager.getTransitions()) {
-      if (this.visual_canvas) {
-        const layerOpacity =
-          layerTransition.focus === 'inactive'
-            ? this.styles.dimmedLayerOpacity
-            : 1;
-        this.visual_canvas.drawFrame({
-          zoomer: this.zoomer,
-          drawables: layerTransition.drawables,
-          config: {
-            layer: {
-              opacity: layerOpacity,
-            },
-            drawables: {
-              focus: layerTransition.focus,
             },
           },
         });
@@ -150,72 +154,38 @@ export class Artist {
       }),
     );
   }
-
-  private remove_from_layer_if_exists(layer: Layer, d: Drawable): boolean {
-    if (layer.drawables.includes(d)) {
-      layer.drawables.splice(layer.drawables.indexOf(d), 1);
-      return true;
-    }
-    return false;
-  }
-
   /*
     The purpose of this method is to take all of the current drawables and distribute them amongst the layers.
 
     Currently, there are two layers: an active layer, and a base layer.
-    The base layer is where drawables are typically rendered, unless they are "active".
-    When a drawable is "active" it is moved to the active layer. 
+    The base layer is where drawables are typically rendered, unless they are "active" (which is a condition defined by the drawable itself)
+    When a drawable is "active" it is moved to the active layer - currently, this just handles opacity and "focus"
     If ANY drawables are on the active layer, the base layer is dimmed.
   */
   private distribute_drawables(): void {
     for (const d of this.drawables) {
-      const activeTransitionWithDrawable =
-        this.transitionManager.getTransition(d);
-
       if (this.cursor && d.isActive(this.cursor, this.zoomer)) {
-        if (!this.active_layer.drawables.includes(d)) {
-          // Move drawable to active layer, and animate base layer to dimmed
-          this.remove_from_layer_if_exists(this.base_layer, d);
-          this.base_layer.animation = new Animation({
-            from: 1,
-            to: this.styles.dimmedLayerOpacity,
-            duration: 1,
-            easing: 'easeout',
-          });
-          if (activeTransitionWithDrawable) {
-            this.transitionManager.removeTransition(
-              activeTransitionWithDrawable,
-            );
-          }
-          this.active_layer.drawables.push(d);
-        }
+        this.transitionManager.transitionToLayerWithAnimation({
+          drawable: d,
+          animationLayer: this.base_layer,
+          sourceLayer: this.base_layer,
+          targetLayer: this.active_layer,
+          animationConfig: DIMMING_ANIMATION_CONFIG(this.styles),
+          focus: 'active',
+          transitionDuration: 0,
+          transitionName: 'baseToActive',
+        });
       } else {
-        // Move drawable from active layer to base layer
-        //  The base layer is animated back to full opacity
-        //  While the drawable itself is suspended with a transition so that it
-        //  "waits" for the animation to finish before transitioning
-        if (
-          !this.base_layer.drawables.includes(d) &&
-          !activeTransitionWithDrawable
-        ) {
-          if (this.remove_from_layer_if_exists(this.active_layer, d)) {
-            this.base_layer.animation = new Animation({
-              from: this.styles.dimmedLayerOpacity,
-              to: 1,
-              duration: 1,
-              easing: 'easeout',
-            });
-            this.transitionManager.add_to_layer_transition({
-              name: 'activeToBase',
-              drawable: d,
-              focus: 'neutral',
-              toLayer: this.base_layer,
-              duration: 1,
-            });
-          } else {
-            this.base_layer.drawables.push(d);
-          }
-        }
+        this.transitionManager.transitionToLayerWithAnimation({
+          drawable: d,
+          animationLayer: this.base_layer,
+          sourceLayer: this.active_layer,
+          targetLayer: this.base_layer,
+          animationConfig: BRIGHTENING_ANIMATION_CONFIG(this.styles),
+          focus: 'neutral',
+          transitionDuration: 1,
+          transitionName: 'activeToBase',
+        });
       }
     }
   }

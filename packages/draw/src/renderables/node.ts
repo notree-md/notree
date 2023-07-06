@@ -5,11 +5,14 @@ import { Zoomer } from '../zoomer';
 import { Circle, Focus, NodeClickCallback, SimulationNode } from '../types';
 
 export class RenderableNode implements Drawable {
+  public zIndex?: number | undefined;
+
   constructor(
     simNode: SimulationNode,
     styles: Styles,
     callback?: NodeClickCallback,
   ) {
+    this.zIndex = 2;
     this.sim_node = simNode;
     this.styles = styles;
     this.callback = callback;
