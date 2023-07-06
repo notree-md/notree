@@ -3,57 +3,17 @@ import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
 import { Animation } from './animation';
+import { TransitionManager } from './transition';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
   canvas: HTMLCanvasElement;
 }
 
-interface Layer {
+export interface Layer {
   drawables: Drawable[];
   focus: Focus;
   animation?: Animation<number>;
-}
-
-class LayerTransition {
-  public name: string;
-  public drawables: Drawable[];
-  public focus: Focus;
-  public constructor({
-    name,
-    drawables,
-    focus,
-    animation,
-    toLayer,
-  }: {
-    name: string;
-    drawables: Drawable[];
-    focus: Focus;
-    animation: Animation<number>;
-    toLayer: Layer;
-  }) {
-    this.name = name;
-    this.drawables = drawables;
-    this.focus = focus;
-    this.animation = animation;
-    this.toLayer = toLayer;
-  }
-
-  public isFinished(): boolean {
-    this.animation.getValue();
-    return this.animation.state.current === this.animation.state.desired;
-  }
-
-  public transition() {
-    for (const d of this.drawables) {
-      if (!this.toLayer.drawables.includes(d)) {
-        this.toLayer.drawables.push(d);
-      }
-    }
-  }
-
-  private toLayer: Layer;
-  private animation: Animation<number>;
 }
 
 export class Artist {
@@ -86,7 +46,7 @@ export class Artist {
       focus: 'active',
     };
     this.layers = [this.base_layer, this.active_layer];
-    this.layerTransitions = [];
+    this.transitionManager = new TransitionManager();
   }
 
   public draw(drawables: Drawable[]): void {
@@ -109,7 +69,7 @@ export class Artist {
   private base_layer: Layer;
   private active_layer: Layer;
   private layers: Layer[];
-  private layerTransitions: LayerTransition[];
+  private transitionManager: TransitionManager;
 
   private redraw(): void {
     this.distribute_drawables();
@@ -123,15 +83,7 @@ export class Artist {
       this.base_layer.focus = 'neutral';
     }
 
-    for (const layerTransition of this.layerTransitions) {
-      if (layerTransition.isFinished()) {
-        layerTransition.transition();
-        this.layerTransitions.splice(
-          this.layerTransitions.indexOf(layerTransition),
-          1,
-        );
-      }
-    }
+    this.transitionManager.updateTransitions();
 
     for (const layer of this.layers) {
       if (this.visual_canvas) {
@@ -158,19 +110,25 @@ export class Artist {
       }
     }
 
-    for (const layerTransition of this.layerTransitions) {
-      this.visual_canvas?.drawFrame({
-        zoomer: this.zoomer,
-        drawables: layerTransition.drawables,
-        config: {
-          layer: {
-            opacity: 1,
+    for (const layerTransition of this.transitionManager.getTransitions()) {
+      if (this.visual_canvas) {
+        const layerOpacity =
+          layerTransition.focus === 'inactive'
+            ? this.styles.dimmedLayerOpacity
+            : 1;
+        this.visual_canvas.drawFrame({
+          zoomer: this.zoomer,
+          drawables: layerTransition.drawables,
+          config: {
+            layer: {
+              opacity: layerOpacity,
+            },
+            drawables: {
+              focus: layerTransition.focus,
+            },
           },
-          drawables: {
-            focus: layerTransition.focus,
-          },
-        },
-      });
+        });
+      }
     }
   }
 
@@ -193,64 +151,17 @@ export class Artist {
     );
   }
 
-  private remove_from_layer_if_exists(
-    layer: Layer,
-    d: Drawable,
-    delay?: number,
-  ): boolean {
+  private remove_from_layer_if_exists(layer: Layer, d: Drawable): boolean {
     if (layer.drawables.includes(d)) {
-      if (delay) {
-        setTimeout(() => {
-          layer.drawables.splice(layer.drawables.indexOf(d), 1);
-        }, delay);
-      } else {
-        layer.drawables.splice(layer.drawables.indexOf(d), 1);
-      }
+      layer.drawables.splice(layer.drawables.indexOf(d), 1);
       return true;
     }
     return false;
   }
 
-  private add_to_layer_transition({
-    name,
-    drawable,
-    focus,
-    toLayer,
-  }: {
-    name: string;
-    drawable: Drawable;
-    focus: Focus;
-    toLayer: Layer;
-  }) {
-    let foundTransition = false;
-    for (const transition of this.layerTransitions) {
-      if (transition.name === name) {
-        if (!transition.drawables.includes(drawable)) {
-          transition.drawables.push(drawable);
-        }
-        foundTransition = true;
-      }
-    }
-    if (!foundTransition) {
-      this.layerTransitions.push(
-        new LayerTransition({
-          name,
-          toLayer,
-          drawables: [drawable],
-          focus,
-          animation: new Animation({
-            from: 0,
-            to: 1,
-            duration: 1,
-            easing: 'linear',
-          }),
-        }),
-      );
-    }
-  }
-
   /*
     The purpose of this method is to take all of the current drawables and distribute them amongst the layers.
+
     Currently, there are two layers: an active layer, and a base layer.
     The base layer is where drawables are typically rendered, unless they are "active".
     When a drawable is "active" it is moved to the active layer. 
@@ -258,35 +169,34 @@ export class Artist {
   */
   private distribute_drawables(): void {
     for (const d of this.drawables) {
-      let transitionContainingDrawable: LayerTransition | undefined = undefined;
-      for (const transition of this.layerTransitions) {
-        if (transition.drawables.includes(d)) {
-          transitionContainingDrawable = transition;
-        }
-      }
+      const activeTransitionWithDrawable =
+        this.transitionManager.getTransition(d);
 
       if (this.cursor && d.isActive(this.cursor, this.zoomer)) {
         if (!this.active_layer.drawables.includes(d)) {
-          if (this.remove_from_layer_if_exists(this.base_layer, d)) {
-            this.base_layer.animation = new Animation({
-              from: 1,
-              to: this.styles.dimmedLayerOpacity,
-              duration: 1,
-              easing: 'easeout',
-            });
-          }
-          if (transitionContainingDrawable) {
-            this.layerTransitions.splice(
-              this.layerTransitions.indexOf(transitionContainingDrawable),
-              1,
+          // Move drawable to active layer, and animate base layer to dimmed
+          this.remove_from_layer_if_exists(this.base_layer, d);
+          this.base_layer.animation = new Animation({
+            from: 1,
+            to: this.styles.dimmedLayerOpacity,
+            duration: 1,
+            easing: 'easeout',
+          });
+          if (activeTransitionWithDrawable) {
+            this.transitionManager.removeTransition(
+              activeTransitionWithDrawable,
             );
           }
           this.active_layer.drawables.push(d);
         }
       } else {
+        // Move drawable from active layer to base layer
+        //  The base layer is animated back to full opacity
+        //  While the drawable itself is suspended with a transition so that it
+        //  "waits" for the animation to finish before transitioning
         if (
           !this.base_layer.drawables.includes(d) &&
-          !transitionContainingDrawable
+          !activeTransitionWithDrawable
         ) {
           if (this.remove_from_layer_if_exists(this.active_layer, d)) {
             this.base_layer.animation = new Animation({
@@ -295,11 +205,12 @@ export class Artist {
               duration: 1,
               easing: 'easeout',
             });
-            this.add_to_layer_transition({
+            this.transitionManager.add_to_layer_transition({
               name: 'activeToBase',
               drawable: d,
               focus: 'neutral',
               toLayer: this.base_layer,
+              duration: 1,
             });
           } else {
             this.base_layer.drawables.push(d);
