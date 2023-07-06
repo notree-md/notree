@@ -15,30 +15,45 @@ interface Layer {
   animation?: Animation<number>;
 }
 
-class AnimationTransition {
+class LayerTransition {
+  public name: string;
+  public drawables: Drawable[];
+  public focus: Focus;
   public constructor({
-    duration,
-    callback,
+    name,
+    drawables,
+    focus,
+    animation,
+    toLayer,
   }: {
-    duration: number;
-    callback: () => void;
+    name: string;
+    drawables: Drawable[];
+    focus: Focus;
+    animation: Animation<number>;
+    toLayer: Layer;
   }) {
-    this.duration = duration;
-    this.callback = callback;
-    this.endTime = new Date().getTime() + this.duration * 1000;
+    this.name = name;
+    this.drawables = drawables;
+    this.focus = focus;
+    this.animation = animation;
+    this.toLayer = toLayer;
   }
 
   public isFinished(): boolean {
-    return new Date().getTime() >= this.endTime;
+    this.animation.getValue();
+    return this.animation.state.current === this.animation.state.desired;
   }
 
-  public resolve() {
-    this.callback();
+  public transition() {
+    for (const d of this.drawables) {
+      if (!this.toLayer.drawables.includes(d)) {
+        this.toLayer.drawables.push(d);
+      }
+    }
   }
 
-  private endTime: number;
-  private duration: number;
-  private callback: () => void;
+  private toLayer: Layer;
+  private animation: Animation<number>;
 }
 
 export class Artist {
@@ -71,6 +86,7 @@ export class Artist {
       focus: 'active',
     };
     this.layers = [this.base_layer, this.active_layer];
+    this.layerTransitions = [];
   }
 
   public draw(drawables: Drawable[]): void {
@@ -93,7 +109,7 @@ export class Artist {
   private base_layer: Layer;
   private active_layer: Layer;
   private layers: Layer[];
-  private transition?: AnimationTransition;
+  private layerTransitions: LayerTransition[];
 
   private redraw(): void {
     this.distribute_drawables();
@@ -107,6 +123,16 @@ export class Artist {
       this.base_layer.focus = 'neutral';
     }
 
+    for (const layerTransition of this.layerTransitions) {
+      if (layerTransition.isFinished()) {
+        layerTransition.transition();
+        this.layerTransitions.splice(
+          this.layerTransitions.indexOf(layerTransition),
+          1,
+        );
+      }
+    }
+
     for (const layer of this.layers) {
       if (this.visual_canvas) {
         let layerOpacity =
@@ -114,7 +140,6 @@ export class Artist {
         if (layer.animation) {
           layerOpacity = layer.animation.getValue();
           if (layer.animation.state.current == layer.animation.state.desired) {
-            console.log('cleaning up animation');
             layer.animation = undefined;
           }
         }
@@ -131,6 +156,21 @@ export class Artist {
           },
         });
       }
+    }
+
+    for (const layerTransition of this.layerTransitions) {
+      this.visual_canvas?.drawFrame({
+        zoomer: this.zoomer,
+        drawables: layerTransition.drawables,
+        config: {
+          layer: {
+            opacity: 1,
+          },
+          drawables: {
+            focus: layerTransition.focus,
+          },
+        },
+      });
     }
   }
 
@@ -171,6 +211,44 @@ export class Artist {
     return false;
   }
 
+  private add_to_layer_transition({
+    name,
+    drawable,
+    focus,
+    toLayer,
+  }: {
+    name: string;
+    drawable: Drawable;
+    focus: Focus;
+    toLayer: Layer;
+  }) {
+    let foundTransition = false;
+    for (const transition of this.layerTransitions) {
+      if (transition.name === name) {
+        if (!transition.drawables.includes(drawable)) {
+          transition.drawables.push(drawable);
+        }
+        foundTransition = true;
+      }
+    }
+    if (!foundTransition) {
+      this.layerTransitions.push(
+        new LayerTransition({
+          name,
+          toLayer,
+          drawables: [drawable],
+          focus,
+          animation: new Animation({
+            from: 0,
+            to: 1,
+            duration: 1,
+            easing: 'linear',
+          }),
+        }),
+      );
+    }
+  }
+
   /*
     The purpose of this method is to take all of the current drawables and distribute them amongst the layers.
     Currently, there are two layers: an active layer, and a base layer.
@@ -180,6 +258,13 @@ export class Artist {
   */
   private distribute_drawables(): void {
     for (const d of this.drawables) {
+      let transitionContainingDrawable: LayerTransition | undefined = undefined;
+      for (const transition of this.layerTransitions) {
+        if (transition.drawables.includes(d)) {
+          transitionContainingDrawable = transition;
+        }
+      }
+
       if (this.cursor && d.isActive(this.cursor, this.zoomer)) {
         if (!this.active_layer.drawables.includes(d)) {
           if (this.remove_from_layer_if_exists(this.base_layer, d)) {
@@ -190,10 +275,19 @@ export class Artist {
               easing: 'easeout',
             });
           }
+          if (transitionContainingDrawable) {
+            this.layerTransitions.splice(
+              this.layerTransitions.indexOf(transitionContainingDrawable),
+              1,
+            );
+          }
           this.active_layer.drawables.push(d);
         }
       } else {
-        if (!this.base_layer.drawables.includes(d)) {
+        if (
+          !this.base_layer.drawables.includes(d) &&
+          !transitionContainingDrawable
+        ) {
           if (this.remove_from_layer_if_exists(this.active_layer, d)) {
             this.base_layer.animation = new Animation({
               from: this.styles.dimmedLayerOpacity,
@@ -201,8 +295,15 @@ export class Artist {
               duration: 1,
               easing: 'easeout',
             });
+            this.add_to_layer_transition({
+              name: 'activeToBase',
+              drawable: d,
+              focus: 'neutral',
+              toLayer: this.base_layer,
+            });
+          } else {
+            this.base_layer.drawables.push(d);
           }
-          this.base_layer.drawables.push(d);
         }
       }
     }
