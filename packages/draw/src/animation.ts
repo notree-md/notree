@@ -1,3 +1,5 @@
+import { Layer } from './artist';
+
 type HexColor = string;
 type AnimateableProperty = number | HexColor;
 type AnimationState<T extends AnimateableProperty> = {
@@ -50,10 +52,74 @@ export type AnimationConfig<T> = {
   to: T;
   easing: Easing;
   duration: number;
+  propertyName: string;
 };
 
+export class AnimationManager {
+  public static attachAnimation(
+    obj: any,
+    animation: Animation<number | string>,
+  ) {
+    if (!this.animations.has(obj)) {
+      this.animations.set(obj, []);
+    }
+    this.animations.get(obj)?.push(animation);
+  }
+
+  public static clearAnimations(obj: any): void {
+    this.animations.set(obj, []);
+  }
+
+  public static initializeAnimations(
+    animationConfig: Map<any, AnimationConfig<AnimateableProperty>[]>,
+  ) {
+    for (const [layer, animations] of animationConfig.entries()) {
+      AnimationManager.clearAnimations(layer.name);
+      for (const animation of animations) {
+        AnimationManager.attachAnimation(layer.name, new Animation(animation));
+      }
+    }
+  }
+
+  public static getAnimationValueByPropertyName<T extends AnimateableProperty>(
+    obj: any,
+    propertyName: string,
+  ): AnimateableProperty | undefined {
+    const layerAnimations = this.getAnimations(obj);
+    for (const animation of layerAnimations) {
+      if (animation.propertyName === propertyName) {
+        return animation.getValue() as T;
+      }
+    }
+
+    return undefined;
+  }
+
+  public static getAnimations(obj: any): Animation<number | string>[] {
+    const animations = this.animations.get(obj);
+    if (animations) {
+      for (const animation of animations) {
+        if (animation.state.current === animation.state.desired) {
+          animations.splice(animations.indexOf(animation), 1);
+          this.animations.set(obj, animations);
+        }
+      }
+      return animations;
+    }
+    return [];
+  }
+
+  private static animations: Map<any, Animation<number | string>[]> = new Map();
+}
+
 export class Animation<T extends AnimateableProperty> {
-  public constructor({ from, to, easing, duration }: AnimationConfig<T>) {
+  public constructor({
+    from,
+    to,
+    easing,
+    duration,
+    propertyName,
+  }: AnimationConfig<T>) {
     this.state = {
       initial: from,
       current: from,
@@ -62,6 +128,7 @@ export class Animation<T extends AnimateableProperty> {
     this.easing = easing;
     this.duration = duration;
     this.startTime = new Date().getTime();
+    this.propertyName = propertyName;
   }
 
   public getValue(): T {
@@ -116,6 +183,7 @@ export class Animation<T extends AnimateableProperty> {
     return result;
   }
   public state: AnimationState<T>;
+  public propertyName: string;
 
   private numericLerp(start: number, finish: number, percentage: number) {
     return start + (finish - start) * percentage;

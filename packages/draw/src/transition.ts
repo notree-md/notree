@@ -1,5 +1,5 @@
 import { Drawable } from './canvas';
-import { Animation, AnimationConfig } from './animation';
+import { Animation, AnimationConfig, AnimationManager } from './animation';
 import { Layer } from './artist';
 import { Focus } from './types';
 
@@ -86,7 +86,6 @@ export class TransitionManager {
     transitionName,
     focus,
     transitionDuration,
-    animationLayer,
     animationConfig,
   }: {
     drawable: Drawable;
@@ -95,13 +94,12 @@ export class TransitionManager {
     transitionName: string;
     focus: Focus;
     transitionDuration: number;
-    animationLayer: Layer;
-    animationConfig: AnimationConfig<number>;
+    animationConfig: Map<Layer, AnimationConfig<string | number>[]>;
   }) {
     const activeTransitionWithDrawable = this.getTransition(drawable);
     if (!targetLayer.drawables.includes(drawable)) {
       if (this.remove_from_layer_if_exists(sourceLayer, drawable)) {
-        animationLayer.animation = new Animation(animationConfig);
+        AnimationManager.initializeAnimations(animationConfig);
         this.create_or_add_to_transition({
           name: transitionName,
           drawable: drawable,
@@ -114,7 +112,7 @@ export class TransitionManager {
       } else if (activeTransitionWithDrawable) {
         if (activeTransitionWithDrawable.name !== transitionName) {
           this.removeTransition(activeTransitionWithDrawable);
-          animationLayer.animation = new Animation(animationConfig);
+          AnimationManager.initializeAnimations(animationConfig);
         }
       }
     }

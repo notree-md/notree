@@ -2,7 +2,7 @@ import { Canvas, Drawable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
-import { Animation, AnimationConfig } from './animation';
+import { AnimationConfig, AnimationManager } from './animation';
 import { TransitionManager } from './transition';
 
 export interface ArtistArgs {
@@ -11,9 +11,9 @@ export interface ArtistArgs {
 }
 
 export interface Layer {
+  name: string;
   drawables: Drawable[];
   focus: Focus;
-  animation?: Animation<number>;
 }
 
 const DIMMING_ANIMATION_CONFIG: (styles: Styles) => AnimationConfig<number> = (
@@ -24,6 +24,7 @@ const DIMMING_ANIMATION_CONFIG: (styles: Styles) => AnimationConfig<number> = (
     easing: 'easeout',
     from: 1,
     to: styles.dimmedLayerOpacity,
+    propertyName: 'opacity',
   };
 };
 
@@ -60,10 +61,12 @@ export class Artist {
 
     this.drawables = [];
     this.base_layer = {
+      name: 'base_layer',
       drawables: [],
       focus: 'neutral',
     };
     this.active_layer = {
+      name: 'active_layer',
       drawables: [],
       focus: 'active',
     };
@@ -172,20 +175,18 @@ export class Artist {
 
     for (const layer of this.mergeTransitionsIntoLayers()) {
       if (this.visual_canvas) {
-        let layerOpacity =
+        const layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
-        if (layer.animation) {
-          layerOpacity = layer.animation.getValue();
-          if (layer.animation.state.current == layer.animation.state.desired) {
-            layer.animation = undefined;
-          }
-        }
         this.visual_canvas.drawFrame({
           zoomer: this.zoomer,
           drawables: layer.drawables,
           config: {
             layer: {
-              opacity: layerOpacity,
+              opacity:
+                (AnimationManager.getAnimationValueByPropertyName(
+                  layer.name,
+                  'opacity',
+                ) as number) || layerOpacity,
             },
             drawables: {
               focus: layer.focus,
@@ -214,7 +215,8 @@ export class Artist {
       }),
     );
   }
-  /*
+
+  /**
     The purpose of this method is to take all of the current drawables and distribute them amongst the layers.
 
     Currently, there are two layers: an active layer, and a base layer.
@@ -227,10 +229,11 @@ export class Artist {
       if (this.cursor && d.isActive(this.cursor, this.zoomer)) {
         this.transitionManager.transitionToLayerWithAnimation({
           drawable: d,
-          animationLayer: this.base_layer,
           sourceLayer: this.base_layer,
           targetLayer: this.active_layer,
-          animationConfig: DIMMING_ANIMATION_CONFIG(this.styles),
+          animationConfig: new Map([
+            [this.base_layer, [DIMMING_ANIMATION_CONFIG(this.styles)]],
+          ]),
           focus: 'active',
           transitionDuration: 0,
           transitionName: 'baseToActive',
@@ -238,10 +241,11 @@ export class Artist {
       } else {
         this.transitionManager.transitionToLayerWithAnimation({
           drawable: d,
-          animationLayer: this.base_layer,
           sourceLayer: this.active_layer,
           targetLayer: this.base_layer,
-          animationConfig: BRIGHTENING_ANIMATION_CONFIG(this.styles),
+          animationConfig: new Map([
+            [this.base_layer, [BRIGHTENING_ANIMATION_CONFIG(this.styles)]],
+          ]),
           focus: 'neutral',
           transitionDuration: 1,
           transitionName: 'activeToBase',
