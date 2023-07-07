@@ -48,6 +48,7 @@ export class RenderableLink implements Drawable {
           to: desiredColor,
           easing: 'easeout',
           duration: this.styles.hoverAnimationDuration,
+          propertyName: 'color',
         });
       } else {
         this.current_link_color = this.animation.getValue();

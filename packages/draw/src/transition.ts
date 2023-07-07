@@ -94,7 +94,7 @@ export class TransitionManager {
     transitionName: string;
     focus: Focus;
     transitionDuration: number;
-    animationConfig: Map<Layer, AnimationConfig<string | number>[]>;
+    animationConfig: Map<string, AnimationConfig<string | number>[]>;
   }) {
     const activeTransitionWithDrawable = this.getTransition(drawable);
     if (!targetLayer.drawables.includes(drawable)) {
@@ -168,6 +168,7 @@ export class TransitionManager {
             to: 1,
             duration: duration,
             easing: 'linear',
+            propertyName: 'n/a',
           }),
         }),
       );

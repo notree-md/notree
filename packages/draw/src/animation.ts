@@ -1,5 +1,3 @@
-import { Layer } from './artist';
-
 type HexColor = string;
 type AnimateableProperty = number | HexColor;
 type AnimationState<T extends AnimateableProperty> = {
@@ -56,8 +54,8 @@ export type AnimationConfig<T> = {
 };
 
 export class AnimationManager {
-  public static attachAnimation(
-    obj: any,
+  public static attachAnimation<T>(
+    obj: T,
     animation: Animation<number | string>,
   ) {
     if (!this.animations.has(obj)) {
@@ -66,25 +64,25 @@ export class AnimationManager {
     this.animations.get(obj)?.push(animation);
   }
 
-  public static clearAnimations(obj: any): void {
+  public static clearAnimations<T>(obj: T): void {
     this.animations.set(obj, []);
   }
 
-  public static initializeAnimations(
-    animationConfig: Map<any, AnimationConfig<AnimateableProperty>[]>,
+  public static initializeAnimations<T>(
+    animationConfig: Map<T, AnimationConfig<AnimateableProperty>[]>,
   ) {
-    for (const [layer, animations] of animationConfig.entries()) {
-      AnimationManager.clearAnimations(layer.name);
+    for (const [obj, animations] of animationConfig.entries()) {
+      AnimationManager.clearAnimations(obj);
       for (const animation of animations) {
-        AnimationManager.attachAnimation(layer.name, new Animation(animation));
+        AnimationManager.attachAnimation(obj, new Animation(animation));
       }
     }
   }
 
-  public static getAnimationValueByPropertyName<T extends AnimateableProperty>(
-    obj: any,
-    propertyName: string,
-  ): AnimateableProperty | undefined {
+  public static getAnimationValueByPropertyName<
+    ObjType,
+    T extends AnimateableProperty,
+  >(obj: ObjType, propertyName: string): AnimateableProperty | undefined {
     const layerAnimations = this.getAnimations(obj);
     for (const animation of layerAnimations) {
       if (animation.propertyName === propertyName) {
@@ -95,7 +93,7 @@ export class AnimationManager {
     return undefined;
   }
 
-  public static getAnimations(obj: any): Animation<number | string>[] {
+  public static getAnimations<T>(obj: T): Animation<number | string>[] {
     const animations = this.animations.get(obj);
     if (animations) {
       for (const animation of animations) {
@@ -109,7 +107,8 @@ export class AnimationManager {
     return [];
   }
 
-  private static animations: Map<any, Animation<number | string>[]> = new Map();
+  private static animations: Map<unknown, Animation<number | string>[]> =
+    new Map();
 }
 
 export class Animation<T extends AnimateableProperty> {

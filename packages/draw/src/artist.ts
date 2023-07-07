@@ -232,7 +232,7 @@ export class Artist {
           sourceLayer: this.base_layer,
           targetLayer: this.active_layer,
           animationConfig: new Map([
-            [this.base_layer, [DIMMING_ANIMATION_CONFIG(this.styles)]],
+            [this.base_layer.name, [DIMMING_ANIMATION_CONFIG(this.styles)]],
           ]),
           focus: 'active',
           transitionDuration: 0,
@@ -244,7 +244,7 @@ export class Artist {
           sourceLayer: this.active_layer,
           targetLayer: this.base_layer,
           animationConfig: new Map([
-            [this.base_layer, [BRIGHTENING_ANIMATION_CONFIG(this.styles)]],
+            [this.base_layer.name, [BRIGHTENING_ANIMATION_CONFIG(this.styles)]],
           ]),
           focus: 'neutral',
           transitionDuration: 1,

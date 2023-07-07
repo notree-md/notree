@@ -80,6 +80,7 @@ export class RenderableNode implements Drawable {
           to: desiredColor,
           easing: 'easeout',
           duration: this.styles.hoverAnimationDuration,
+          propertyName: 'color',
         });
       } else {
         this.current_node_color = this.animation.getValue();
