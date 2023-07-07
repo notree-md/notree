@@ -111,14 +111,14 @@ export class Artist {
       to fake their zIndex as if they were actually on the target layer
   */
   private mergeTransitionsIntoLayers() {
-    const mergeTransitionsIntoLayers: Layer[] = [];
+    const mergedLayers: Layer[] = [];
     const transitions = this.transitionManager.getTransitions();
     for (const layer of this.layers) {
       const matchingTransitions = transitions.filter(
         (t) => t.toLayer === layer,
       );
       if (matchingTransitions.length === 0) {
-        mergeTransitionsIntoLayers.push(layer);
+        mergedLayers.push(layer);
         continue;
       }
       const zIndexMappedLayer = this.groupByZindex(layer);
@@ -138,14 +138,14 @@ export class Artist {
       ];
       zIndexes.forEach((zIndex) => {
         if (zIndex in zIndexMappedLayer) {
-          mergeTransitionsIntoLayers.push({
+          mergedLayers.push({
             ...layer,
             drawables: zIndexMappedLayer[Number(zIndex)],
           });
         }
         zIndexMappedTransitions.forEach((e) => {
           if (zIndex in e.zIndexMapped) {
-            mergeTransitionsIntoLayers.push({
+            mergedLayers.push({
               ...e.orig,
               drawables: e.zIndexMapped[Number(zIndex)],
             });
@@ -153,7 +153,7 @@ export class Artist {
         });
       });
     }
-    return mergeTransitionsIntoLayers;
+    return mergedLayers;
   }
 
   private redraw(): void {
