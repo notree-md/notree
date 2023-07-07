@@ -30,6 +30,7 @@
     "@types/d3-force": "^3.0.4",
     "@types/d3-selection": "^3.0.5",
     "@types/d3-zoom": "^3.0.3",
+    "@types/express": "^4.17.17",
     "cypress": "^12.13.0",
     "cypress-visual-regression": "^3.0.0",
     "eslint-plugin-cypress": "^2.13.3",

@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
-import { readFromFileSystem } from '@mindgraph/read';
+import { FileSystem } from '@mindgraph/read';
 
 const PORT = 5173;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -13,7 +13,9 @@ async function createServer() {
 
   app.get('/api/notes', async (_req, res, next) => {
     try {
-      const notes = await readFromFileSystem(path.resolve(__dirname, 'notes'));
+      const notes = await FileSystem.read({
+        path: path.resolve(__dirname, 'notes'),
+      });
       res.send(notes);
     } catch (error) {
       console.error(error);

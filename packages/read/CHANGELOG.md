@@ -1,5 +1,11 @@
 # @mindgraph/read
 
+## 0.4.0
+
+### Minor Changes
+
+- e888ae2: feat: add GitHub provider
+
 ## 0.3.0
 
 ### Minor Changes
