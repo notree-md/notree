@@ -36,7 +36,7 @@ const mockCanvas = {
 } as unknown as HTMLCanvasElement;
 
 describe('Artist', () => {
-  it('', async () => {
+  it('mergeTransitionsIntoLayers properly breaks up layers by layer sort and zIndex sort', async () => {
     const artist = new Artist({
       canvas: mockCanvas,
     });
