@@ -170,8 +170,7 @@ export class Artist {
 
     this.transitionManager.updateTransitions();
 
-    const mergeTransitionsIntoLayers = this.mergeTransitionsIntoLayers();
-    for (const layer of mergeTransitionsIntoLayers) {
+    for (const layer of this.mergeTransitionsIntoLayers()) {
       if (this.visual_canvas) {
         let layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
