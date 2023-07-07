@@ -20,7 +20,7 @@ const DIMMING_ANIMATION_CONFIG: (styles: Styles) => AnimationConfig<number> = (
   styles: Styles,
 ) => {
   return {
-    duration: 1,
+    duration: styles.dimmingLayerDuration,
     easing: 'easeout',
     from: 1,
     to: styles.dimmedLayerOpacity,
@@ -113,9 +113,9 @@ export class Artist {
       breaking up new layers based on zIndex, allowing a transition's drawables 
       to fake their zIndex as if they were actually on the target layer
   */
-  public mergeTransitionsIntoLayers(
-    transitions: LayerTransition[],
+  private mergeTransitionsIntoLayers(
     layers: Layer[],
+    transitions: LayerTransition[],
   ) {
     const mergedLayers: Layer[] = [];
     for (const layer of layers) {
@@ -176,8 +176,8 @@ export class Artist {
     this.transitionManager.updateTransitions();
 
     for (const layer of this.mergeTransitionsIntoLayers(
-      this.transitionManager.getTransitions(),
       this.layers,
+      this.transitionManager.getTransitions(),
     )) {
       if (this.visual_canvas) {
         const layerOpacity =
@@ -252,7 +252,7 @@ export class Artist {
             [this.base_layer.name, [BRIGHTENING_ANIMATION_CONFIG(this.styles)]],
           ]),
           focus: 'neutral',
-          transitionDuration: 1,
+          transitionDuration: this.styles.dimmingLayerDuration,
           transitionName: 'activeToBase',
         });
       }

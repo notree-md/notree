@@ -78,7 +78,11 @@ describe('Artist', () => {
       }),
     ];
 
-    const mergedLayers = artist.mergeTransitionsIntoLayers(transitions, layers);
+    const artProto = Object.getPrototypeOf(artist);
+    const mergedLayers = artProto.mergeTransitionsIntoLayers(
+      layers,
+      transitions,
+    );
     expect(mergedLayers).toMatchObject([
       layers[0],
       {
