@@ -3,7 +3,7 @@ import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
 import { AnimationConfig, AnimationManager } from './animation';
-import { TransitionManager } from './transition';
+import { LayerTransition, TransitionManager } from './transition';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
@@ -113,10 +113,12 @@ export class Artist {
       breaking up new layers based on zIndex, allowing a transition's drawables 
       to fake their zIndex as if they were actually on the target layer
   */
-  private mergeTransitionsIntoLayers() {
+  public mergeTransitionsIntoLayers(
+    transitions: LayerTransition[],
+    layers: Layer[],
+  ) {
     const mergedLayers: Layer[] = [];
-    const transitions = this.transitionManager.getTransitions();
-    for (const layer of this.layers) {
+    for (const layer of layers) {
       const matchingTransitions = transitions.filter(
         (t) => t.toLayer === layer,
       );
@@ -173,7 +175,10 @@ export class Artist {
 
     this.transitionManager.updateTransitions();
 
-    for (const layer of this.mergeTransitionsIntoLayers()) {
+    for (const layer of this.mergeTransitionsIntoLayers(
+      this.transitionManager.getTransitions(),
+      this.layers,
+    )) {
       if (this.visual_canvas) {
         const layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;

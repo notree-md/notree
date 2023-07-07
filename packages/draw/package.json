@@ -7,7 +7,7 @@
     "lint": "eslint src/**; eslint cypress",
     "typecheck": "tsc --noEmit",
     "dev": "node example/server.js",
-    "test": "cypress install; node example/server.js & PID=$!; wait-on -t 10000 http://localhost:5173; cypress run --env type=actual; kill -9 $PID"
+    "test": "vitest; cypress install; node example/server.js & PID=$!; wait-on -t 10000 http://localhost:5173; cypress run --env type=actual; kill -9 $PID"
   },
   "type": "module",
   "author": "jollyjerr <jollyjerr@gmail.com>",
@@ -35,6 +35,7 @@
     "cypress-visual-regression": "^3.0.0",
     "eslint-plugin-cypress": "^2.13.3",
     "express": "^4.18.2",
+    "happy-dom": "^10.0.3",
     "vite": "^4.3.9",
     "vitest": "^0.31.1",
     "wait-on": "^7.0.1"
