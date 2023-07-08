@@ -21,6 +21,12 @@ export class RenderableLink implements Renderable {
     };
   }
 
+  public reset() {
+    this.lastTimeActive = undefined;
+    this.current_link_color = this.styles.linkColor;
+    this.animation = undefined;
+  }
+
   public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
     const sourceNode = new RenderableNode(this.sim_link.source, this.styles);
     const targetNode = new RenderableNode(this.sim_link.target, this.styles);

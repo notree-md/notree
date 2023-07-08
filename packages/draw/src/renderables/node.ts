@@ -37,6 +37,12 @@ export class RenderableNode implements Renderable {
     }
   }
 
+  public reset() {
+    this.lastTimeActive = undefined;
+    this.current_node_color = this.styles.nodeColor;
+    this.animation = undefined;
+  }
+
   public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
     let out = false;
 

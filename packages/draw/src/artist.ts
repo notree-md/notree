@@ -142,7 +142,7 @@ export class Artist {
         this.active_layer.drawables.push(d);
       } else if (
         typeof d.lastTimeActive === 'number' &&
-        now - d.lastTimeActive <= 1000
+        now - d.lastTimeActive <= this.styles.dimmingLayerDuration * 1000
       ) {
         this.purgatory.drawables.push(d);
       } else {
@@ -155,6 +155,7 @@ export class Artist {
       do {
         const node = this.purgatory.drawables.pop();
         if (node) {
+          node.reset();
           this.base_layer.drawables.push(node);
         }
       } while (this.purgatory.drawables.length);
@@ -168,14 +169,14 @@ export class Artist {
           this.base_layer.animation?.getValue() ||
           this.styles.dimmedLayerOpacity,
         to: 1,
-        duration: 1,
+        duration: this.styles.dimmingLayerDuration,
         easing: 'easeout',
       });
     } else if (!activeAtStart && this.active_layer.drawables.length) {
       this.base_layer.animation = new Animation({
         from: this.base_layer.animation?.getValue() || 1,
         to: this.styles.dimmedLayerOpacity,
-        duration: 1,
+        duration: this.styles.dimmingLayerDuration,
         easing: 'easeout',
       });
     }
