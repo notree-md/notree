@@ -1,4 +1,4 @@
-import { Canvas, Drawable } from '../canvas';
+import { Canvas, Renderable } from '../canvas';
 import { ConfiguredSimulationLink } from '../simulation';
 import { Styles } from '../style';
 import { Animation } from '../animation';
@@ -6,7 +6,9 @@ import { Zoomer } from '../zoomer';
 import { RenderableNode } from './node';
 import { Focus } from '../types';
 
-export class RenderableLink implements Drawable {
+export class RenderableLink implements Renderable {
+  public lastTimeActive?: number;
+
   constructor(simLink: ConfiguredSimulationLink, styles: Styles) {
     this.sim_link = simLink;
     this.styles = styles;
@@ -22,9 +24,16 @@ export class RenderableLink implements Drawable {
   public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
     const sourceNode = new RenderableNode(this.sim_link.source, this.styles);
     const targetNode = new RenderableNode(this.sim_link.target, this.styles);
-    return (
-      sourceNode.isActive(cursor, zoomer) || targetNode.isActive(cursor, zoomer)
-    );
+
+    const out =
+      sourceNode.isActive(cursor, zoomer) ||
+      targetNode.isActive(cursor, zoomer);
+
+    if (out) {
+      this.lastTimeActive = new Date().getTime();
+    }
+
+    return out;
   }
 
   public draw(canvas: Canvas, focus: Focus): void {

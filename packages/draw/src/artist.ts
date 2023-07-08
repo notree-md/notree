@@ -1,4 +1,4 @@
-import { Canvas, Drawable } from './canvas';
+import { Canvas, Renderable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
@@ -9,7 +9,7 @@ export interface ArtistArgs {
 }
 
 interface Layer {
-  drawables: Drawable[];
+  drawables: Renderable[];
   focus: Focus;
 }
 
@@ -38,13 +38,17 @@ export class Artist {
       drawables: [],
       focus: 'neutral',
     };
+    this.purgatory = {
+      drawables: [],
+      focus: 'neutral',
+    };
     this.active_layer = {
       drawables: [],
       focus: 'active',
     };
   }
 
-  public draw(drawables: Drawable[]): void {
+  public draw(drawables: Renderable[]): void {
     if (isSSR()) return;
     this.drawables = drawables;
     this.redraw();
@@ -60,9 +64,10 @@ export class Artist {
   private visual_canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
-  private drawables: Drawable[];
+  private drawables: Renderable[];
   private base_layer: Layer;
   private active_layer: Layer;
+  private purgatory: Layer;
 
   private redraw(): void {
     this.distribute_drawables();
@@ -111,7 +116,10 @@ export class Artist {
   }
 
   private distribute_drawables(): void {
+    const now = new Date().getTime();
+
     this.active_layer.drawables = [];
+    this.purgatory.drawables = [];
     this.base_layer.drawables = [];
 
     for (const d of this.drawables) {
@@ -121,6 +129,11 @@ export class Artist {
         !this.active_layer.drawables.includes(d)
       ) {
         this.active_layer.drawables.push(d);
+      } else if (
+        typeof d.lastTimeActive === 'number' &&
+        now - d.lastTimeActive <= 1000
+      ) {
+        this.purgatory.drawables.push(d);
       } else {
         this.base_layer.drawables.push(d);
       }

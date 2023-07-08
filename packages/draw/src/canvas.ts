@@ -2,7 +2,8 @@ import { create, select, Selection } from 'd3-selection';
 import { NodeClickEvent, Line, Circle, Focus } from './types';
 import { Zoomer } from './zoomer';
 
-export interface Drawable {
+export interface Renderable {
+  lastTimeActive?: number;
   draw(canvas: Canvas, focus: Focus): void;
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
   onClick?(): void;
@@ -123,7 +124,7 @@ export class Canvas {
     config,
   }: {
     zoomer: Zoomer;
-    drawables: Drawable[];
+    drawables: Renderable[];
     config: {
       layer: {
         opacity: number;
