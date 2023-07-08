@@ -2,6 +2,7 @@ import { Canvas, Renderable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
+import { Animation } from './animation';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
@@ -11,6 +12,7 @@ export interface ArtistArgs {
 interface Layer {
   drawables: Renderable[];
   focus: Focus;
+  animation?: Animation<number>;
 }
 
 export class Artist {
@@ -77,15 +79,23 @@ export class Artist {
 
     this.visual_canvas?.clear();
 
-    for (const layer of layers) {
-      if (this.visual_canvas) {
+    if (this.visual_canvas) {
+      for (const layer of layers) {
+        let layerOpacity =
+          layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
+        if (layer.animation) {
+          layerOpacity = layer.animation.getValue();
+          if (layer.animation.state.current == layer.animation.state.desired) {
+            layer.animation = undefined;
+          }
+        }
+
         this.visual_canvas.drawFrame({
           zoomer: this.zoomer,
           drawables: layer.drawables,
           config: {
             layer: {
-              opacity:
-                layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1,
+              opacity: layerOpacity,
             },
             drawables: {
               focus: layer.focus,
@@ -117,6 +127,7 @@ export class Artist {
 
   private distribute_drawables(): void {
     const now = new Date().getTime();
+    const activeAtStart = this.active_layer.drawables.length;
 
     this.active_layer.drawables = [];
     this.purgatory.drawables = [];
@@ -141,8 +152,30 @@ export class Artist {
 
     if (this.active_layer.drawables.length) {
       this.base_layer.focus = 'inactive';
+      do {
+        const node = this.purgatory.drawables.pop();
+        if (node) {
+          this.base_layer.drawables.push(node);
+        }
+      } while (this.purgatory.drawables.length);
     } else {
       this.base_layer.focus = 'neutral';
+    }
+
+    if (activeAtStart && !this.active_layer.drawables.length) {
+      this.base_layer.animation = new Animation({
+        from: this.styles.dimmedLayerOpacity,
+        to: 1,
+        duration: 1,
+        easing: 'easeout',
+      });
+    } else if (!activeAtStart && this.active_layer.drawables.length) {
+      this.base_layer.animation = new Animation({
+        from: 1,
+        to: this.styles.dimmedLayerOpacity,
+        duration: 1,
+        easing: 'easeout',
+      });
     }
   }
 
