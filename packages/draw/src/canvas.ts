@@ -3,7 +3,6 @@ import { NodeClickEvent, Line, Circle, Focus } from './types';
 import { Zoomer } from './zoomer';
 
 export interface Drawable {
-  zIndex?: number;
   draw(canvas: Canvas, focus: Focus): void;
   isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
   onClick?(): void;
