@@ -164,14 +164,16 @@ export class Artist {
 
     if (activeAtStart && !this.active_layer.drawables.length) {
       this.base_layer.animation = new Animation({
-        from: this.styles.dimmedLayerOpacity,
+        from:
+          this.base_layer.animation?.getValue() ||
+          this.styles.dimmedLayerOpacity,
         to: 1,
         duration: 1,
         easing: 'easeout',
       });
     } else if (!activeAtStart && this.active_layer.drawables.length) {
       this.base_layer.animation = new Animation({
-        from: 1,
+        from: this.base_layer.animation?.getValue() || 1,
         to: this.styles.dimmedLayerOpacity,
         duration: 1,
         easing: 'easeout',
