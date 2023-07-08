@@ -73,7 +73,7 @@ export class Artist {
     this.distribute_drawables();
     this.update_cursor();
 
-    const layers = [this.base_layer, this.active_layer];
+    const layers = [this.purgatory, this.base_layer, this.active_layer];
 
     this.visual_canvas?.clear();
 
