@@ -17,7 +17,7 @@ recommended you check all of this out.
 ## Getting started
 
 ```
-git clone your-fork/mindgraph
+git clone your-fork/notree
 pnpm i
 pnpm dev
 ```

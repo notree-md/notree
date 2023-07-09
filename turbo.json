@@ -1,13 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
-    "@mindgraph/types#build": {},
+    "@notree/common#build": {},
     "build": {
-      "dependsOn": ["@mindgraph/types#build"]
+      "dependsOn": ["@notree/common#build"]
     },
     "lint": {},
     "typecheck": {
-      "dependsOn": ["@mindgraph/types#build"]
+      "dependsOn": ["@notree/common#build"]
     },
     "test": {},
     "dev": {

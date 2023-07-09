@@ -1,0 +1,33 @@
+{
+  "name": "@notree/server",
+  "version": "0.1.0",
+  "description": "open source backend ecosystem for notree",
+  "scripts": {
+    "build": "rollup -c",
+    "lint": "eslint ./src/**/*.ts",
+    "typecheck": "tsc -noEmit",
+    "test": "vitest"
+  },
+  "type": "module",
+  "author": "notree-md <jollyjerr@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.1",
+    "@types/node": "^20.2.5",
+    "rollup": "^3.23.0"
+  },
+  "peerDependencies": {
+    "axios": "^1.4.0",
+    "octokit": "^2.1.0"
+  },
+  "dependencies": {
+    "@notree/common": "workspace:*"
+  }
+}
