@@ -1,7 +1,8 @@
-import { Canvas, Drawable } from './canvas';
+import { Canvas, Renderable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
+import { Animation } from './animation';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
@@ -9,8 +10,9 @@ export interface ArtistArgs {
 }
 
 interface Layer {
-  drawables: Drawable[];
+  drawables: Renderable[];
   focus: Focus;
+  animation?: Animation<number>;
 }
 
 export class Artist {
@@ -38,13 +40,17 @@ export class Artist {
       drawables: [],
       focus: 'neutral',
     };
+    this.purgatory = {
+      drawables: [],
+      focus: 'neutral',
+    };
     this.active_layer = {
       drawables: [],
       focus: 'active',
     };
   }
 
-  public draw(drawables: Drawable[]): void {
+  public draw(drawables: Renderable[]): void {
     if (isSSR()) return;
     this.drawables = drawables;
     this.redraw();
@@ -60,27 +66,36 @@ export class Artist {
   private visual_canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
-  private drawables: Drawable[];
+  private drawables: Renderable[];
   private base_layer: Layer;
   private active_layer: Layer;
+  private purgatory: Layer;
 
   private redraw(): void {
     this.distribute_drawables();
     this.update_cursor();
 
-    const layers = [this.base_layer, this.active_layer];
+    const layers = [this.purgatory, this.base_layer, this.active_layer];
 
     this.visual_canvas?.clear();
 
-    for (const layer of layers) {
-      if (this.visual_canvas) {
+    if (this.visual_canvas) {
+      for (const layer of layers) {
+        let layerOpacity =
+          layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
+        if (layer.animation) {
+          layerOpacity = layer.animation.getValue();
+          if (layer.animation.state.current == layer.animation.state.desired) {
+            layer.animation = undefined;
+          }
+        }
+
         this.visual_canvas.drawFrame({
           zoomer: this.zoomer,
           drawables: layer.drawables,
           config: {
             layer: {
-              opacity:
-                layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1,
+              opacity: layerOpacity,
             },
             drawables: {
               focus: layer.focus,
@@ -111,7 +126,11 @@ export class Artist {
   }
 
   private distribute_drawables(): void {
+    const now = new Date().getTime();
+    const activeAtStart = this.active_layer.drawables.length;
+
     this.active_layer.drawables = [];
+    this.purgatory.drawables = [];
     this.base_layer.drawables = [];
 
     for (const d of this.drawables) {
@@ -121,6 +140,11 @@ export class Artist {
         !this.active_layer.drawables.includes(d)
       ) {
         this.active_layer.drawables.push(d);
+      } else if (
+        typeof d.lastTimeActive === 'number' &&
+        now - d.lastTimeActive <= this.styles.dimmingLayerDuration * 1000
+      ) {
+        this.purgatory.drawables.push(d);
       } else {
         this.base_layer.drawables.push(d);
       }
@@ -128,8 +152,33 @@ export class Artist {
 
     if (this.active_layer.drawables.length) {
       this.base_layer.focus = 'inactive';
+      do {
+        const node = this.purgatory.drawables.pop();
+        if (node) {
+          node.reset();
+          this.base_layer.drawables.push(node);
+        }
+      } while (this.purgatory.drawables.length);
     } else {
       this.base_layer.focus = 'neutral';
+    }
+
+    if (activeAtStart && !this.active_layer.drawables.length) {
+      this.base_layer.animation = new Animation({
+        from:
+          this.base_layer.animation?.getValue() ||
+          this.styles.dimmedLayerOpacity,
+        to: 1,
+        duration: this.styles.dimmingLayerDuration,
+        easing: 'easeout',
+      });
+    } else if (!activeAtStart && this.active_layer.drawables.length) {
+      this.base_layer.animation = new Animation({
+        from: this.base_layer.animation?.getValue() || 1,
+        to: this.styles.dimmedLayerOpacity,
+        duration: this.styles.dimmingLayerDuration,
+        easing: 'easeout',
+      });
     }
   }
 

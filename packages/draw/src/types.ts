@@ -46,6 +46,7 @@ export type GraphStyleConfig = {
   minZoom: number;
   maxZoom: number;
   dimmedLayerOpacity: number;
+  dimmingLayerDuration: number;
 };
 
 export type GraphSimulationConfig = {

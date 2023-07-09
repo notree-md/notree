@@ -1,6 +1,6 @@
 import { GraphData } from '@mindgraph/types';
 import { Artist } from './artist';
-import { Drawable } from './canvas';
+import { Renderable } from './canvas';
 import { RenderableLink, RenderableNode } from './renderables';
 import { Simulation } from './simulation';
 import { GraphSimulationConfig, NodeClickCallback } from './types';
@@ -56,7 +56,7 @@ export class MindGraph {
     this.render();
   }
 
-  private drawables: Drawable[];
+  private drawables: Renderable[];
   private simulation: Simulation;
   private artist: Artist;
   private callback: NodeClickCallback | undefined;

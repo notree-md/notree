@@ -45,4 +45,5 @@ const default_styles: GraphStyleConfig = {
   nodeScaleFactor: 0.96,
   minimumNodeSize: 4,
   dimmedLayerOpacity: 0.4,
+  dimmingLayerDuration: 1,
 };
