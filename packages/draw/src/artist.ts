@@ -1,43 +1,19 @@
-import { Canvas, Drawable } from './canvas';
+import { Canvas, Renderable } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
-import { AnimationConfig, AnimationManager } from './animation';
-import { LayerTransition, TransitionManager } from './transition';
+import { Animation } from './animation';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;
   canvas: HTMLCanvasElement;
 }
 
-export interface Layer {
-  name: string;
-  drawables: Drawable[];
+interface Layer {
+  drawables: Renderable[];
   focus: Focus;
+  animation?: Animation<number>;
 }
-
-const DIMMING_ANIMATION_CONFIG: (styles: Styles) => AnimationConfig<number> = (
-  styles: Styles,
-) => {
-  return {
-    duration: styles.dimmingLayerDuration,
-    easing: 'easeout',
-    from: 1,
-    to: styles.dimmedLayerOpacity,
-    propertyName: 'opacity',
-  };
-};
-
-const BRIGHTENING_ANIMATION_CONFIG: (
-  styles: Styles,
-) => AnimationConfig<number> = (styles: Styles) => {
-  const dimming = DIMMING_ANIMATION_CONFIG(styles);
-  return {
-    ...dimming,
-    from: dimming.to,
-    to: dimming.from,
-  };
-};
 
 export class Artist {
   public readonly canvasInitialWidth: number;
@@ -61,20 +37,20 @@ export class Artist {
 
     this.drawables = [];
     this.base_layer = {
-      name: 'base_layer',
+      drawables: [],
+      focus: 'neutral',
+    };
+    this.purgatory = {
       drawables: [],
       focus: 'neutral',
     };
     this.active_layer = {
-      name: 'active_layer',
       drawables: [],
       focus: 'active',
     };
-    this.layers = [this.base_layer, this.active_layer];
-    this.transitionManager = new TransitionManager();
   }
 
-  public draw(drawables: Drawable[]): void {
+  public draw(drawables: Renderable[]): void {
     if (isSSR()) return;
     this.drawables = drawables;
     this.redraw();
@@ -90,108 +66,36 @@ export class Artist {
   private visual_canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
-  private drawables: Drawable[];
+  private drawables: Renderable[];
   private base_layer: Layer;
   private active_layer: Layer;
-  private layers: Layer[];
-  private transitionManager: TransitionManager;
-
-  private groupByZindex(el: { drawables: Drawable[] }) {
-    return el.drawables.reduce<Record<number, Drawable[]>>((a, e) => {
-      const zIndex = e.zIndex ? e.zIndex : 0;
-      if (zIndex in a) {
-        a[zIndex].push(e);
-      } else {
-        a[zIndex] = [e];
-      }
-      return a;
-    }, {});
-  }
-
-  /** 
-      Merge transition drawables in sequence into their target layers,
-      breaking up new layers based on zIndex, allowing a transition's drawables 
-      to fake their zIndex as if they were actually on the target layer
-  */
-  private mergeTransitionsIntoLayers(
-    layers: Layer[],
-    transitions: LayerTransition[],
-  ) {
-    const mergedLayers: Layer[] = [];
-    for (const layer of layers) {
-      const matchingTransitions = transitions.filter(
-        (t) => t.toLayer === layer,
-      );
-      if (matchingTransitions.length === 0) {
-        mergedLayers.push(layer);
-        continue;
-      }
-      const zIndexMappedLayer = this.groupByZindex(layer);
-      const zIndexMappedTransitions = matchingTransitions.map((e) => {
-        return { orig: e, zIndexMapped: this.groupByZindex(e) };
-      });
-      const zIndexes = [
-        ...new Set(
-          Object.keys(zIndexMappedLayer)
-            .concat(
-              zIndexMappedTransitions.flatMap((e) =>
-                Object.keys(e.zIndexMapped),
-              ),
-            )
-            .sort(),
-        ),
-      ];
-      zIndexes.forEach((zIndex) => {
-        if (zIndex in zIndexMappedLayer) {
-          mergedLayers.push({
-            ...layer,
-            drawables: zIndexMappedLayer[Number(zIndex)],
-          });
-        }
-        zIndexMappedTransitions.forEach((e) => {
-          if (zIndex in e.zIndexMapped) {
-            mergedLayers.push({
-              ...e.orig,
-              drawables: e.zIndexMapped[Number(zIndex)],
-            });
-          }
-        });
-      });
-    }
-    return mergedLayers;
-  }
+  private purgatory: Layer;
 
   private redraw(): void {
     this.distribute_drawables();
     this.update_cursor();
 
+    const layers = [this.purgatory, this.base_layer, this.active_layer];
+
     this.visual_canvas?.clear();
 
-    if (this.active_layer.drawables.length > 0) {
-      this.base_layer.focus = 'inactive';
-    } else {
-      this.base_layer.focus = 'neutral';
-    }
-
-    this.transitionManager.updateTransitions();
-
-    for (const layer of this.mergeTransitionsIntoLayers(
-      this.layers,
-      this.transitionManager.getTransitions(),
-    )) {
-      if (this.visual_canvas) {
-        const layerOpacity =
+    if (this.visual_canvas) {
+      for (const layer of layers) {
+        let layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
+        if (layer.animation) {
+          layerOpacity = layer.animation.getValue();
+          if (layer.animation.state.current == layer.animation.state.desired) {
+            layer.animation = undefined;
+          }
+        }
+
         this.visual_canvas.drawFrame({
           zoomer: this.zoomer,
           drawables: layer.drawables,
           config: {
             layer: {
-              opacity:
-                (AnimationManager.getAnimationValueByPropertyName(
-                  layer.name,
-                  'opacity',
-                ) as number) || layerOpacity,
+              opacity: layerOpacity,
             },
             drawables: {
               focus: layer.focus,
@@ -221,41 +125,60 @@ export class Artist {
     );
   }
 
-  /**
-    The purpose of this method is to take all of the current drawables and distribute them amongst the layers.
-
-    Currently, there are two layers: an active layer, and a base layer.
-    The base layer is where drawables are typically rendered, unless they are "active" (which is a condition defined by the drawable itself)
-    When a drawable is "active" it is moved to the active layer - currently, this just handles opacity and "focus"
-    If ANY drawables are on the active layer, the base layer is dimmed.
-  */
   private distribute_drawables(): void {
+    const now = new Date().getTime();
+    const activeAtStart = this.active_layer.drawables.length;
+
+    this.active_layer.drawables = [];
+    this.purgatory.drawables = [];
+    this.base_layer.drawables = [];
+
     for (const d of this.drawables) {
-      if (this.cursor && d.isActive(this.cursor, this.zoomer)) {
-        this.transitionManager.transitionToLayerWithAnimation({
-          drawable: d,
-          sourceLayer: this.base_layer,
-          targetLayer: this.active_layer,
-          animationConfig: new Map([
-            [this.base_layer.name, [DIMMING_ANIMATION_CONFIG(this.styles)]],
-          ]),
-          focus: 'active',
-          transitionDuration: 0,
-          transitionName: 'baseToActive',
-        });
+      if (
+        this.cursor &&
+        d.isActive({ x: this.cursor.x, y: this.cursor.y }, this.zoomer) &&
+        !this.active_layer.drawables.includes(d)
+      ) {
+        this.active_layer.drawables.push(d);
+      } else if (
+        typeof d.lastTimeActive === 'number' &&
+        now - d.lastTimeActive <= this.styles.dimmingLayerDuration * 1000
+      ) {
+        this.purgatory.drawables.push(d);
       } else {
-        this.transitionManager.transitionToLayerWithAnimation({
-          drawable: d,
-          sourceLayer: this.active_layer,
-          targetLayer: this.base_layer,
-          animationConfig: new Map([
-            [this.base_layer.name, [BRIGHTENING_ANIMATION_CONFIG(this.styles)]],
-          ]),
-          focus: 'neutral',
-          transitionDuration: this.styles.dimmingLayerDuration,
-          transitionName: 'activeToBase',
-        });
+        this.base_layer.drawables.push(d);
       }
+    }
+
+    if (this.active_layer.drawables.length) {
+      this.base_layer.focus = 'inactive';
+      do {
+        const node = this.purgatory.drawables.pop();
+        if (node) {
+          node.reset();
+          this.base_layer.drawables.push(node);
+        }
+      } while (this.purgatory.drawables.length);
+    } else {
+      this.base_layer.focus = 'neutral';
+    }
+
+    if (activeAtStart && !this.active_layer.drawables.length) {
+      this.base_layer.animation = new Animation({
+        from:
+          this.base_layer.animation?.getValue() ||
+          this.styles.dimmedLayerOpacity,
+        to: 1,
+        duration: this.styles.dimmingLayerDuration,
+        easing: 'easeout',
+      });
+    } else if (!activeAtStart && this.active_layer.drawables.length) {
+      this.base_layer.animation = new Animation({
+        from: this.base_layer.animation?.getValue() || 1,
+        to: this.styles.dimmedLayerOpacity,
+        duration: this.styles.dimmingLayerDuration,
+        easing: 'easeout',
+      });
     }
   }
 

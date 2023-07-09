@@ -35,7 +35,6 @@
     "cypress-visual-regression": "^3.0.0",
     "eslint-plugin-cypress": "^2.13.3",
     "express": "^4.18.2",
-    "happy-dom": "^10.0.3",
     "vite": "^4.3.9",
     "vitest": "^0.31.1",
     "wait-on": "^7.0.1"

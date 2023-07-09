@@ -1,18 +1,17 @@
-import { Canvas, Drawable } from '../canvas';
+import { Canvas, Renderable } from '../canvas';
 import { Styles } from '../style';
 import { Animation } from '../animation';
 import { Zoomer } from '../zoomer';
 import { Circle, Focus, NodeClickCallback, SimulationNode } from '../types';
 
-export class RenderableNode implements Drawable {
-  public zIndex?: number | undefined;
+export class RenderableNode implements Renderable {
+  public lastTimeActive?: number;
 
   constructor(
     simNode: SimulationNode,
     styles: Styles,
     callback?: NodeClickCallback,
   ) {
-    this.zIndex = 2;
     this.sim_node = simNode;
     this.styles = styles;
     this.callback = callback;
@@ -38,7 +37,15 @@ export class RenderableNode implements Drawable {
     }
   }
 
+  public reset() {
+    this.lastTimeActive = undefined;
+    this.current_node_color = this.styles.nodeColor;
+    this.animation = undefined;
+  }
+
   public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
+    let out = false;
+
     const translatedMouseX = cursor.x - zoomer.x;
     const translatedMouseY = cursor.y - zoomer.y;
     if (this.sim_node.x && this.sim_node.y) {
@@ -57,10 +64,15 @@ export class RenderableNode implements Drawable {
           translatedMouseY,
         )
       ) {
-        return true;
+        out = true;
       }
     }
-    return false;
+
+    if (out) {
+      this.lastTimeActive = new Date().getTime();
+    }
+
+    return out;
   }
 
   public draw(canvas: Canvas, focus: Focus): void {
@@ -80,7 +92,6 @@ export class RenderableNode implements Drawable {
           to: desiredColor,
           easing: 'easeout',
           duration: this.styles.hoverAnimationDuration,
-          propertyName: 'color',
         });
       } else {
         this.current_node_color = this.animation.getValue();

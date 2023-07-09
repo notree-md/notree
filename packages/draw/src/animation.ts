@@ -45,80 +45,18 @@ function easeOut(per: number) {
   return flip(flip(per) ** 2);
 }
 
-export type AnimationConfig<T> = {
-  from: T;
-  to: T;
-  easing: Easing;
-  duration: number;
-  propertyName: string;
-};
-
-export class AnimationManager {
-  public static attachAnimation<T>(
-    obj: T,
-    animation: Animation<number | string>,
-  ) {
-    if (!this.animations.has(obj)) {
-      this.animations.set(obj, []);
-    }
-    this.animations.get(obj)?.push(animation);
-  }
-
-  public static clearAnimations<T>(obj: T): void {
-    this.animations.set(obj, []);
-  }
-
-  public static initializeAnimations<T>(
-    animationConfig: Map<T, AnimationConfig<AnimateableProperty>[]>,
-  ) {
-    for (const [obj, animations] of animationConfig.entries()) {
-      AnimationManager.clearAnimations(obj);
-      for (const animation of animations) {
-        AnimationManager.attachAnimation(obj, new Animation(animation));
-      }
-    }
-  }
-
-  public static getAnimationValueByPropertyName<
-    ObjType,
-    T extends AnimateableProperty,
-  >(obj: ObjType, propertyName: string): AnimateableProperty | undefined {
-    const layerAnimations = this.getAnimations(obj);
-    for (const animation of layerAnimations) {
-      if (animation.propertyName === propertyName) {
-        return animation.getValue() as T;
-      }
-    }
-
-    return undefined;
-  }
-
-  public static getAnimations<T>(obj: T): Animation<number | string>[] {
-    const animations = this.animations.get(obj);
-    if (animations) {
-      for (const animation of animations) {
-        if (animation.state.current === animation.state.desired) {
-          animations.splice(animations.indexOf(animation), 1);
-          this.animations.set(obj, animations);
-        }
-      }
-      return animations;
-    }
-    return [];
-  }
-
-  private static animations: Map<unknown, Animation<number | string>[]> =
-    new Map();
-}
-
 export class Animation<T extends AnimateableProperty> {
   public constructor({
     from,
     to,
     easing,
     duration,
-    propertyName,
-  }: AnimationConfig<T>) {
+  }: {
+    from: T;
+    to: T;
+    easing: Easing;
+    duration: number;
+  }) {
     this.state = {
       initial: from,
       current: from,
@@ -127,7 +65,6 @@ export class Animation<T extends AnimateableProperty> {
     this.easing = easing;
     this.duration = duration;
     this.startTime = new Date().getTime();
-    this.propertyName = propertyName;
   }
 
   public getValue(): T {
@@ -159,9 +96,8 @@ export class Animation<T extends AnimateableProperty> {
     const animationPercentage = easingFunc(
       Math.min(1, elapsedTime / this.duration),
     );
-    let result;
     if (typeof this.state.initial == 'number') {
-      result = this.numericLerp(
+      return this.numericLerp(
         this.state.initial,
         this.state.desired as number,
         animationPercentage,
@@ -174,15 +110,11 @@ export class Animation<T extends AnimateableProperty> {
         g: this.numericLerp(initRgb.g, desiredRgb.g, animationPercentage),
         b: this.numericLerp(initRgb.b, desiredRgb.b, animationPercentage),
       };
-      result = rgbToHex(currentRgb.r, currentRgb.g, currentRgb.b) as T;
-    } else {
-      result = 0 as T;
+      return rgbToHex(currentRgb.r, currentRgb.g, currentRgb.b) as T;
     }
-    this.state.current = result;
-    return result;
+    return 0 as T;
   }
   public state: AnimationState<T>;
-  public propertyName: string;
 
   private numericLerp(start: number, finish: number, percentage: number) {
     return start + (finish - start) * percentage;
