@@ -1,6 +1,6 @@
 {
-  "name": "mindgraph",
-  "description": "monorepo for @mindgraph/*",
+  "name": "notree",
+  "description": "monorepo for @notree/*",
   "scripts": {
     "ci": "pnpm run format:check && turbo run build lint typecheck && turbo run test",
     "build": "turbo run build",
@@ -13,22 +13,22 @@
   },
   "type": "module",
   "private": true,
-  "author": "jollyjerr <jollyjerr@gmail.com>",
+  "author": "notree-md <jollyjerr@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jollyjerr/mindgraph.git"
+    "url": "git+https://github.com/notree-md/notree.git"
   },
-  "homepage": "https://github.com/jollyjerr/mindgraph#readme",
+  "homepage": "https://github.com/notree-md/notree#readme",
   "devDependencies": {
-    "@changesets/cli": "^2.26.1",
-    "@typescript-eslint/eslint-plugin": "^5.59.7",
-    "@typescript-eslint/parser": "^5.59.7",
+    "@changesets/cli": "^2.26.2",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
     "dotenv": "^16.3.1",
-    "eslint": "^8.41.0",
-    "prettier": "^2.8.8",
-    "turbo": "^1.9.9",
-    "typescript": "^5.0.4",
-    "vitest": "^0.31.1"
+    "eslint": "^8.44.0",
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.7",
+    "typescript": "^5.1.6",
+    "vitest": "^0.33.0"
   }
 }

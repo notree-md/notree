@@ -4,4 +4,4 @@
 
 *.yaml
 
-packages/read/src/__snapshots__/**/*
+packages/server/src/__snapshots__/**/*
