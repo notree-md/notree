@@ -1,3 +1,6 @@
+<p align="center">
+    <img src="./docs/assets/logo.png" width="200px" style="margin: 0px auto">
+</p>
 <div align="center">
     <h1 align="center">notree</h1>
 </div>
