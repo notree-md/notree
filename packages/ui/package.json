@@ -15,13 +15,13 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/draw.umd.cjs",
-  "module": "./dist/draw.js",
+  "main": "./dist/ui.umd.cjs",
+  "module": "./dist/ui.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/draw.js",
-      "require": "./dist/draw.umd.cjs"
+      "import": "./dist/ui.js",
+      "require": "./dist/ui.umd.cjs"
     }
   },
   "devDependencies": {
