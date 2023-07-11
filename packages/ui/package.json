@@ -1,6 +1,6 @@
 {
   "name": "@notree/ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "open source frontend ecosystem for notree",
   "scripts": {
     "build": "vite build && tsc --emitDeclarationOnly",
