@@ -25,6 +25,12 @@ export class Canvas {
       ? select(canvasElement)
       : create('canvas');
     this.context = this.canvasElement.node()?.getContext('2d') || undefined;
+    const resizer = new ResizeObserver(() => {
+      this.resizeCanvas();
+    });
+    if (this.canvasElement) {
+      resizer.observe(this.canvasElement.node() as Element);
+    }
     this.resizeCanvas(config?.initialWidth, config?.initialHeight);
   }
 

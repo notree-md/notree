@@ -77,9 +77,9 @@ export class Artist {
 
     const layers = [this.purgatory, this.base_layer, this.active_layer];
 
-    this.visual_canvas?.clear();
-
     if (this.visual_canvas) {
+      this.visual_canvas.clear();
+
       for (const layer of layers) {
         let layerOpacity =
           layer.focus === 'inactive' ? this.styles.dimmedLayerOpacity : 1;
@@ -191,9 +191,13 @@ export class Artist {
   }
 
   private add_click_handler(): void {
-    this.visual_canvas?.on('click', ({ layerX, layerY }) => {
+    this.visual_canvas?.on('click', ({ offsetX, offsetY }) => {
       for (const d of this.drawables) {
-        if (d.isActive({ x: layerX, y: layerY }, this.zoomer) && d.onClick) {
+        if (
+          this.cursor &&
+          d.isActive({ x: offsetX, y: offsetY }, this.zoomer) &&
+          d.onClick
+        ) {
           d.onClick();
         }
       }
