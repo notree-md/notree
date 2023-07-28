@@ -27,8 +27,7 @@ export type SimulationLink = SimulationNodeDatum & {
   target: SimulationNode;
 };
 
-export type NodeClickEvent = { layerX: number; layerY: number };
-
+export type NodeClickEvent = { offsetX: number; offsetY: number };
 export type NodeClickCallback = (node: SimulationNode) => void;
 
 export type GraphStyleConfig = {

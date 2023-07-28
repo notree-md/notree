@@ -62,9 +62,6 @@ importers:
 
   packages/ui:
     dependencies:
-      '@notree/common':
-        specifier: workspace:*
-        version: link:../common
       d3-array:
         specifier: ^3.2.3
         version: 3.2.3
@@ -78,6 +75,9 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
     devDependencies:
+      '@notree/common':
+        specifier: workspace:*
+        version: link:../common
       '@notree/server':
         specifier: workspace:*
         version: link:../server
