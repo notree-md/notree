@@ -5,11 +5,17 @@
     <h1 align="center">notree</h1>
 </div>
 
-**In active development and will likely have breaking changes before v1.0**
+notree is a privacy first content sharing ecosystem aiming to spark new ideas by
+connecting people and their knowledge.
 
-## Example
+Most of our code is hosted here in open source packages for building,
+sharing, and editing interfaces based on markdown.
 
-https://jtabb.dev/notes
+## Packages
+
+- [@notree/ui](packages/ui)
+- [@notree/server](packages/server)
+- [@notree/common](packages/common)
 
 ## Contributing
 
