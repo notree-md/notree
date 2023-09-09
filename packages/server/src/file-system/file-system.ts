@@ -44,7 +44,7 @@ async function gather_objects_from_directory(
 async function gather_links_from_file(
   filePath: string,
   data: GraphDataPayload,
-) {
+): Promise<void> {
   const fileStream = fs.createReadStream(filePath);
   const lines = readline.createInterface({ input: fileStream });
 
