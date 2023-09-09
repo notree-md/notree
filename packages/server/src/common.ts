@@ -1,28 +1,14 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload, ServerLink, ServerNode } from '@notree/common';
 
 export const MARKDOWN_EXTENSION = '.md';
 export const HIDDEN_FILES_REGEX = /^\./;
 export const LINK_CONTENT_REGEX = /\]\((.*?)\)/g;
 export const PROTOCOL_DELIMITER = '://';
 
-export function formatGraphForTestSnapshot(data: GraphData) {
-  return {
-    nodes: data.nodes
-      .map((n) => ({ name: n.name, linkCount: n.linkCount }))
-      .sort((a, b) => (a.name > b.name ? 1 : -1)),
-    links: data.links
-      .map((l) => ({
-        source: l.source.split('/').at(-1)!,
-        target: l.target.split('/').at(-1),
-      }))
-      .sort((a, b) => (a.source > b.source ? 1 : -1)),
-  };
-}
-
 export function extractLinksFromLine(
   line: string,
   filePath: string,
-): GraphData['links'] {
+): ServerLink[] {
   const formattedLinks = [];
   const links = line.matchAll(LINK_CONTENT_REGEX) || [];
 
@@ -47,14 +33,69 @@ export function extractLinksFromLine(
         }
       }
 
-      formattedLinks.push({
-        source: filePath,
-        target: pathToTargetFile.join('/'),
-      });
+      formattedLinks.push(
+        new_link({
+          source: filePath,
+          target: pathToTargetFile.join('/'),
+        }),
+      );
     }
   }
 
   return formattedLinks;
+}
+
+export function formatGraphForTestSnapshot(data: GraphDataPayload) {
+  return {
+    nodes: Object.values(data.nodes)
+      .map((n) => ({
+        title: n.title,
+        parentNodes: n.parentNodes.map(truncate_path_for_test_snapshot),
+        parentLinks: n.parentLinks.map(truncate_path_for_test_snapshot),
+        childNodes: n.childNodes.map(truncate_path_for_test_snapshot),
+        childLinks: n.childLinks.map(truncate_path_for_test_snapshot),
+      }))
+      .sort((a, b) => (a.title > b.title ? 1 : -1)),
+    links: Object.values(data.links)
+      .map((l) => ({
+        source: truncate_path_for_test_snapshot(l.source),
+        target: truncate_path_for_test_snapshot(l.target),
+      }))
+      .sort((a, b) => (a.source > b.source ? 1 : -1)),
+  };
+}
+
+export function newNode({
+  id,
+  title,
+}: Pick<ServerNode, 'id' | 'title'>): ServerNode {
+  return {
+    id,
+    title,
+    parentLinks: [],
+    parentNodes: [],
+    childLinks: [],
+    childNodes: [],
+  };
+}
+
+export function new_link({
+  source,
+  target,
+}: Pick<ServerLink, 'source' | 'target'>) {
+  return {
+    source,
+    target,
+    id: link_id({ source, target }),
+  };
+}
+
+function link_id({ source, target }: Pick<ServerLink, 'source' | 'target'>) {
+  return `${source}:${target}`;
+}
+
+function truncate_path_for_test_snapshot(path: string) {
+  return path.split('/').at(-1) || 'none';
 }
 
 function is_valid_link_path(path: string | undefined): path is string {
