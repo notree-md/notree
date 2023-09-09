@@ -1,4 +1,3 @@
-import { GraphData } from '@notree/common';
 import { map } from 'd3-array';
 import { GraphSimulationConfig, SimulationNode } from './types';
 import {
@@ -9,6 +8,7 @@ import {
   forceLink,
   Simulation as D3Simulation,
 } from 'd3-force';
+import { GraphData, Link, Node } from './data';
 
 export type ConfiguredSimulationLink = SimulationNodeDatum & {
   source: SimulationNode;
@@ -96,9 +96,7 @@ type BuildSimulationArgs = {
   height: number;
 };
 
-function merge_node_datum<TDatum extends Record<string, string | number>>(
-  datum: TDatum,
-) {
+function merge_node_datum<TDatum extends Link | Node>(datum: TDatum) {
   return {
     ...empty_node_datum,
     ...datum,

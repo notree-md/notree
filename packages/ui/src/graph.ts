@@ -1,13 +1,14 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 import { Artist } from './artist';
 import { Renderable } from './canvas';
 import { RenderableLink, RenderableNode } from './renderables';
 import { Simulation } from './simulation';
 import { GraphSimulationConfig, NodeClickCallback } from './types';
 import { Styles, isSSR } from './style';
+import { GraphData } from './data';
 
 export interface GraphArgs {
-  data: GraphData;
+  data: GraphDataPayload;
   canvas: HTMLCanvasElement;
   styles?: Partial<Styles>;
   simulationConfig?: Partial<GraphSimulationConfig>;
@@ -15,6 +16,7 @@ export interface GraphArgs {
 
 export class Graph {
   constructor({ data, canvas, styles, simulationConfig }: GraphArgs) {
+    this.data = new GraphData(data);
     this.drawables = [];
     this.callback = undefined;
 
@@ -24,7 +26,7 @@ export class Graph {
     });
 
     this.simulation = new Simulation({
-      data,
+      data: this.data,
       simulationConfig: {
         randomizeStartingPoints: true,
         ...simulationConfig,
@@ -56,6 +58,7 @@ export class Graph {
     this.render();
   }
 
+  private data: GraphData;
   private drawables: Renderable[];
   private simulation: Simulation;
   private artist: Artist;

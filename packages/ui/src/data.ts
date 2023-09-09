@@ -8,13 +8,13 @@ export type Node = {
   childNodes: Node[];
   parentLinks: Link[];
   childLinks: Link[];
-  seen?: true;
+  converted?: true;
 };
 
 export type Link = {
   source: Node;
   target: Node;
-  seen?: true;
+  converted?: true;
 };
 
 export class GraphData {
@@ -25,7 +25,7 @@ export class GraphData {
       if (link_converted(link)) return link;
 
       const convertedLink = link as unknown as Link;
-      convertedLink.seen = true;
+      convertedLink.converted = true;
 
       convertedLink.source = convert_node(nodes[link.source]);
       convertedLink.target = convert_node(nodes[link.target]);
@@ -37,7 +37,7 @@ export class GraphData {
       if (node_converted(node)) return node;
 
       const convertedNode = node as unknown as Node;
-      convertedNode.seen = true;
+      convertedNode.converted = true;
 
       convertedNode.childNodes = node.childNodes.map((id) =>
         convert_node(nodes[id]),
@@ -70,19 +70,19 @@ export class GraphData {
 
   private cleanup() {
     for (const node of this.nodes) {
-      delete node.seen;
+      delete node.converted;
     }
 
     for (const link of this.links) {
-      delete link.seen;
+      delete link.converted;
     }
   }
 }
 
 function node_converted(node: ServerNode | Node): node is Node {
-  return !!(node as Node).seen;
+  return !!(node as Node).converted;
 }
 
 function link_converted(link: ServerLink | Link): link is Link {
-  return !!(link as Link).seen;
+  return !!(link as Link).converted;
 }
