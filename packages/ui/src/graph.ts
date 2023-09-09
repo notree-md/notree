@@ -68,3 +68,8 @@ export class Graph {
     window.requestAnimationFrame(() => this.render());
   }
 }
+
+// what I want to do
+// const focused = nodes.find(is_under_cursor);
+// focused.children.forEach(link_or_node => link_or_node.activate())
+// focused.parents(): Node[]

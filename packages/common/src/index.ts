@@ -1,12 +1,15 @@
 export type Node = {
   id: string;
-  name: string;
-  linkCount: number;
+  title: string;
+  childNodes: Node[];
+  childLinks: Link[];
+  parentNodes: Node[];
+  parentLinks: Link[];
 };
 
 export type Link = {
-  source: string;
-  target: string;
+  source: Node['id'];
+  target: Node['id'];
 };
 
 export type GraphData = {
