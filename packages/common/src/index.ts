@@ -1,6 +1,7 @@
 export type ServerNode = {
   id: string;
   title: string;
+  totalDescendants: number;
   parentNodes: ServerNode['id'][];
   childNodes: ServerNode['id'][];
   parentLinks: ServerLink['id'][];
@@ -21,10 +22,11 @@ export type GraphDataPayload = {
 export type Node = {
   id: string;
   title: string;
-  childNodes: Node[];
-  childLinks: Link[];
+  totalDescendants: number;
   parentNodes: Node[];
+  childNodes: Node[];
   parentLinks: Link[];
+  childLinks: Link[];
 };
 
 export type Link = {

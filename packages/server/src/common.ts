@@ -51,9 +51,8 @@ export function formatGraphForTestSnapshot(data: GraphDataPayload) {
       .map((n) => ({
         title: n.title,
         parentNodes: n.parentNodes.map(truncate_path_for_test_snapshot),
-        parentLinks: n.parentLinks.map(truncate_path_for_test_snapshot),
         childNodes: n.childNodes.map(truncate_path_for_test_snapshot),
-        childLinks: n.childLinks.map(truncate_path_for_test_snapshot),
+        totalDescendants: n.totalDescendants,
       }))
       .sort((a, b) => (a.title > b.title ? 1 : -1)),
     links: Object.values(data.links)
@@ -72,6 +71,7 @@ export function newNode({
   return {
     id,
     title,
+    totalDescendants: 0,
     parentLinks: [],
     parentNodes: [],
     childLinks: [],
@@ -79,10 +79,33 @@ export function newNode({
   };
 }
 
-export function new_link({
-  source,
-  target,
-}: Pick<ServerLink, 'source' | 'target'>) {
+export function backfillGraph(data: GraphDataPayload): GraphDataPayload {
+  for (const link of Object.values(data.links)) {
+    data.nodes[link.source].childLinks.push(link.id);
+    data.nodes[link.source].childNodes.push(link.target);
+    data.nodes[link.target].parentLinks.push(link.id);
+    data.nodes[link.target].parentNodes.push(link.source);
+  }
+
+  for (const node of Object.values(data.nodes)) {
+    node.totalDescendants = count_children(node, data);
+  }
+
+  return data;
+}
+
+function count_children(node: ServerNode, data: GraphDataPayload) {
+  let count = node.childNodes.length;
+  if (!count) return count;
+
+  for (const child of node.childNodes) {
+    count += count_children(data.nodes[child], data);
+  }
+
+  return count;
+}
+
+function new_link({ source, target }: Pick<ServerLink, 'source' | 'target'>) {
   return {
     source,
     target,

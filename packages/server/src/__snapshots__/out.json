@@ -59,40 +59,97 @@
   ],
   "nodes": [
     {
-      "linkCount": 8,
-      "name": "big.md",
+      "childNodes": [
+        "med1.md",
+        "med2.md",
+        "small1.md",
+        "small2.md",
+        "small3.md",
+        "small4.md",
+        "small5.md",
+        "small6.md",
+      ],
+      "parentNodes": [],
+      "title": "big.md",
+      "totalDescendants": 14,
     },
     {
-      "linkCount": 3,
-      "name": "med1.md",
+      "childNodes": [
+        "small1.md",
+        "small2.md",
+        "small3.md",
+      ],
+      "parentNodes": [
+        "big.md",
+      ],
+      "title": "med1.md",
+      "totalDescendants": 3,
     },
     {
-      "linkCount": 3,
-      "name": "med2.md",
+      "childNodes": [
+        "small4.md",
+        "small5.md",
+        "small6.md",
+      ],
+      "parentNodes": [
+        "big.md",
+      ],
+      "title": "med2.md",
+      "totalDescendants": 3,
     },
     {
-      "linkCount": 0,
-      "name": "small1.md",
+      "childNodes": [],
+      "parentNodes": [
+        "big.md",
+        "med1.md",
+      ],
+      "title": "small1.md",
+      "totalDescendants": 0,
     },
     {
-      "linkCount": 0,
-      "name": "small2.md",
+      "childNodes": [],
+      "parentNodes": [
+        "big.md",
+        "med1.md",
+      ],
+      "title": "small2.md",
+      "totalDescendants": 0,
     },
     {
-      "linkCount": 0,
-      "name": "small3.md",
+      "childNodes": [],
+      "parentNodes": [
+        "big.md",
+        "med1.md",
+      ],
+      "title": "small3.md",
+      "totalDescendants": 0,
     },
     {
-      "linkCount": 0,
-      "name": "small4.md",
+      "childNodes": [],
+      "parentNodes": [
+        "big.md",
+        "med2.md",
+      ],
+      "title": "small4.md",
+      "totalDescendants": 0,
     },
     {
-      "linkCount": 0,
-      "name": "small5.md",
+      "childNodes": [],
+      "parentNodes": [
+        "big.md",
+        "med2.md",
+      ],
+      "title": "small5.md",
+      "totalDescendants": 0,
     },
     {
-      "linkCount": 0,
-      "name": "small6.md",
+      "childNodes": [],
+      "parentNodes": [
+        "big.md",
+        "med2.md",
+      ],
+      "title": "small6.md",
+      "totalDescendants": 0,
     },
   ],
 }
