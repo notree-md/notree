@@ -1,5 +1,29 @@
-import type { Node } from '@notree/common';
 import { SimulationNodeDatum } from 'd3-force';
+import { Renderable } from './canvas';
+
+export type Node = {
+  id: string;
+  title: string;
+  totalDescendants: number;
+  parentNodes: Node[];
+  childNodes: Node[];
+  parentLinks: Link[];
+  childLinks: Link[];
+  renderable: Renderable;
+  converted?: true;
+} & SimulationNodeDatum;
+
+export type Link = {
+  source: Node;
+  target: Node;
+  renderable: Renderable;
+  converted?: true;
+} & SimulationNodeDatum;
+
+export type GraphData = {
+  nodes: Node[];
+  links: Link[];
+};
 
 export type Focus = 'active' | 'neutral' | 'inactive';
 
@@ -20,15 +44,8 @@ export type Line = {
   };
 };
 
-export type SimulationNode = SimulationNodeDatum & Node;
-
-export type SimulationLink = SimulationNodeDatum & {
-  source: SimulationNode;
-  target: SimulationNode;
-};
-
 export type NodeClickEvent = { offsetX: number; offsetY: number };
-export type NodeClickCallback = (node: SimulationNode) => void;
+export type NodeClickCallback = (node: Node) => void;
 
 export type GraphStyleConfig = {
   nodeColor: string;

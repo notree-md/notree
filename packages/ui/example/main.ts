@@ -1,5 +1,5 @@
 import { GraphDataPayload } from '@notree/common';
-import { GraphData } from '../src/data';
+import { Graph } from '../src/graph';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const canvas = document.getElementById('app') as HTMLCanvasElement;
@@ -13,18 +13,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data: GraphDataPayload = await fetch('/api/notes').then((response) =>
       response.json(),
     );
-    console.log({ data });
-    const example = new GraphData(data);
-    console.log({ example });
-    // const mg: Graph = new Graph({
-    //   data,
-    //   canvas,
-    //   styles: {
-    //     titleColor: '#ffffff',
-    //   },
-    // });
+    const mg: Graph = new Graph({
+      data,
+      canvas,
+      styles: {
+        titleColor: '#ffffff',
+      },
+    });
     // mg.onClick((node) => alert(node.id));
-    // mg.draw();
+    mg.draw();
   } catch (error) {
     alert(error);
   }

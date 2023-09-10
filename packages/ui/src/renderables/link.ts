@@ -1,17 +1,16 @@
 import { Canvas, Renderable } from '../canvas';
-import { ConfiguredSimulationLink } from '../simulation';
 import { Styles } from '../style';
 import { Animation } from '../animation';
 import { Zoomer } from '../zoomer';
-import { RenderableNode } from './node';
-import { Focus } from '../types';
+import { Focus, Link } from '../types';
 
 export class RenderableLink implements Renderable {
   public lastTimeActive?: number;
 
-  constructor(simLink: ConfiguredSimulationLink, styles: Styles) {
-    this.sim_link = simLink;
-    this.styles = styles;
+  constructor(
+    private data: Link,
+    private styles: Styles,
+  ) {
     this.current_link_color = this.styles.linkColor;
     this.animation = undefined;
     this.color_config = {
@@ -28,8 +27,8 @@ export class RenderableLink implements Renderable {
   }
 
   public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
-    const sourceNode = new RenderableNode(this.sim_link.source, this.styles);
-    const targetNode = new RenderableNode(this.sim_link.target, this.styles);
+    const sourceNode = this.data.source.renderable;
+    const targetNode = this.data.target.renderable;
 
     const out =
       sourceNode.isActive(cursor, zoomer) ||
@@ -44,8 +43,8 @@ export class RenderableLink implements Renderable {
 
   public draw(canvas: Canvas, focus: Focus): void {
     const line = {
-      source: this.sim_link.source,
-      target: this.sim_link.target,
+      source: this.data.source,
+      target: this.data.target,
     };
 
     const desiredColor = this.color_config[focus];
@@ -68,8 +67,6 @@ export class RenderableLink implements Renderable {
     canvas.drawLine(line, this.current_link_color);
   }
 
-  private sim_link: ConfiguredSimulationLink;
-  private styles: Styles;
   private current_link_color: string;
   private animation: Animation<string> | undefined;
   private color_config: Record<Focus, string>;

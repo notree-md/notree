@@ -2,27 +2,24 @@ import { Canvas, Renderable } from '../canvas';
 import { Styles } from '../style';
 import { Animation } from '../animation';
 import { Zoomer } from '../zoomer';
-import { Circle, Focus, NodeClickCallback, SimulationNode } from '../types';
+import { Circle, Focus, Node, NodeClickCallback } from '../types';
 
 export class RenderableNode implements Renderable {
   public lastTimeActive?: number;
 
   constructor(
-    simNode: SimulationNode,
-    styles: Styles,
-    callback?: NodeClickCallback,
+    private data: Node,
+    private styles: Styles,
+    private callback?: NodeClickCallback,
   ) {
-    this.sim_node = simNode;
-    this.styles = styles;
-    this.callback = callback;
     this.animation = undefined;
     this.current_node_color = this.styles.nodeColor;
     this.circle = {
-      x: this.sim_node.x,
-      y: this.sim_node.y,
+      x: this.data.x,
+      y: this.data.y,
       radius:
         styles.minimumNodeSize +
-        (this.sim_node.linkCount || 1) ** styles.nodeScaleFactor,
+        (this.data.totalDescendants || 1) ** styles.nodeScaleFactor,
     };
     this.color_config = {
       active: this.styles.activeNodeColor,
@@ -33,7 +30,7 @@ export class RenderableNode implements Renderable {
 
   public onClick() {
     if (this.callback) {
-      this.callback(this.sim_node);
+      this.callback(this.data);
     }
   }
 
@@ -48,9 +45,9 @@ export class RenderableNode implements Renderable {
 
     const translatedMouseX = cursor.x - zoomer.x;
     const translatedMouseY = cursor.y - zoomer.y;
-    if (this.sim_node.x && this.sim_node.y) {
-      const scaledNodeX = this.sim_node.x * zoomer.k;
-      const scaledNodeY = this.sim_node.y * zoomer.k;
+    if (this.data.x && this.data.y) {
+      const scaledNodeX = this.data.x * zoomer.k;
+      const scaledNodeY = this.data.y * zoomer.k;
       const scaledNodeRadius = this.circle.radius * zoomer.k;
       if (
         between(
@@ -78,7 +75,7 @@ export class RenderableNode implements Renderable {
   public draw(canvas: Canvas, focus: Focus): void {
     const radiusPadding =
       focus === 'active' ? this.styles.activeNodeRadiusPadding : 0;
-    const text = this.sim_node.name.split('.md')[0];
+    const text = this.data.title.split('.md')[0];
 
     const desiredColor = this.color_config[focus];
 
@@ -105,8 +102,8 @@ export class RenderableNode implements Renderable {
         : this.styles.nodeTitlePadding;
     canvas.drawCircle(
       {
-        x: this.sim_node.x,
-        y: this.sim_node.y,
+        x: this.data.x,
+        y: this.data.y,
         radius: this.circle.radius + radiusPadding,
       },
       this.current_node_color,
@@ -118,10 +115,7 @@ export class RenderableNode implements Renderable {
     );
   }
 
-  private sim_node: SimulationNode;
   private circle: Circle;
-  private styles: Styles;
-  private callback: NodeClickCallback | undefined;
   private current_node_color: string;
   private animation: Animation<string> | undefined;
   private color_config: Record<Focus, string>;
