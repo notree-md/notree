@@ -2,7 +2,7 @@ import { create, select, Selection } from 'd3-selection';
 import { NodeClickEvent, Line, Circle, Focus } from './types';
 import { Zoomer } from './zoomer';
 
-export interface Renderable {
+export interface Renderable extends SimulationNodeDatum {
   lastTimeActive?: number;
   reset(): void;
   draw(canvas: Canvas, focus: Focus): void;
@@ -127,16 +127,16 @@ export class Canvas {
 
   public drawFrame({
     zoomer,
-    drawables,
+    renderables,
     config,
   }: {
     zoomer: Zoomer;
-    drawables: Renderable[];
+    renderables: Renderable[];
     config: {
       layer: {
         opacity: number;
       };
-      drawables: {
+      renderables: {
         focus: Focus;
       };
     };
@@ -149,8 +149,8 @@ export class Canvas {
     this.context.scale(zoomer.k, zoomer.k);
     this.context.globalAlpha = config.layer.opacity;
 
-    for (const drawable of drawables) {
-      drawable.draw(this, config.drawables.focus);
+    for (const renderable of renderables) {
+      renderable.draw(this, config.renderables.focus);
     }
 
     this.context.restore();

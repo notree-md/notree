@@ -2,14 +2,25 @@ import { Canvas, Renderable } from '../canvas';
 import { Styles } from '../style';
 import { Animation } from '../animation';
 import { Zoomer } from '../zoomer';
-import { Focus, Link } from '../types';
+import { Focus, emptyNodeDatum } from '../types';
+import { GraphDataPayload, ServerLink } from '@notree/common';
+import { Node } from './node';
 
-export class RenderableLink implements Renderable {
+export class Link implements Renderable {
   public lastTimeActive?: number;
 
   constructor(
-    private data: Link,
+    public id: string,
+    public source: Node,
+    public target: Node,
     private styles: Styles,
+    public index?: number,
+    public x?: number,
+    public y?: number,
+    public vx?: number,
+    public vy?: number,
+    public fx?: number,
+    public fy?: number,
   ) {
     this.current_link_color = this.styles.linkColor;
     this.animation = undefined;
@@ -20,6 +31,32 @@ export class RenderableLink implements Renderable {
     };
   }
 
+  public static fromServerLink(
+    link: ServerLink,
+    styles: Styles,
+    data: GraphDataPayload,
+  ): Link {
+    if (link instanceof Link) return link as unknown as Link;
+
+    const convertedLink = new Link(
+      link.id,
+      Node.fromServerNode(data.nodes[link.source], styles, data),
+      Node.fromServerNode(data.nodes[link.target], styles, data),
+      styles,
+      emptyNodeDatum.index,
+      emptyNodeDatum.x,
+      emptyNodeDatum.y,
+      emptyNodeDatum.vx,
+      emptyNodeDatum.vy,
+      emptyNodeDatum.fx,
+      emptyNodeDatum.fy,
+    );
+
+    data.links[link.id] = convertedLink as unknown as ServerLink;
+
+    return convertedLink;
+  }
+
   public reset() {
     this.lastTimeActive = undefined;
     this.current_link_color = this.styles.linkColor;
@@ -27,8 +64,8 @@ export class RenderableLink implements Renderable {
   }
 
   public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
-    const sourceNode = this.data.source.renderable;
-    const targetNode = this.data.target.renderable;
+    const sourceNode = this.source;
+    const targetNode = this.target;
 
     const out =
       sourceNode.isActive(cursor, zoomer) ||
@@ -43,8 +80,8 @@ export class RenderableLink implements Renderable {
 
   public draw(canvas: Canvas, focus: Focus): void {
     const line = {
-      source: this.data.source,
-      target: this.data.target,
+      source: this.source,
+      target: this.target,
     };
 
     const desiredColor = this.color_config[focus];

@@ -1,9 +1,10 @@
 import { GraphDataPayload } from '@notree/common';
 import { Artist } from './artist';
-import { GraphData, GraphSimulationConfig, NodeClickCallback } from './types';
+import { GraphSimulationConfig, NodeClickCallback } from './types';
 import { Styles, isSSR } from './style';
-import { convertInPlace } from './data';
 import { startForceSimulation } from './simulation';
+import { Renderable } from './canvas';
+import { Node } from './renderables';
 
 export interface GraphArgs {
   data: GraphDataPayload;
@@ -19,11 +20,15 @@ export class Graph {
       canvas,
     });
 
-    this.data = convertInPlace({ data, styles: this.artist.styles });
-    this.callback = undefined;
+    for (const node of Object.values(data.nodes)) {
+      Node.fromServerNode(node, this.artist.styles, data);
+    }
 
+    console.log(data);
+
+    this.callback = undefined;
     startForceSimulation({
-      data: this.data,
+      data,
       simulationConfig: {
         randomizeStartingPoints: true,
         ...simulationConfig,
@@ -42,14 +47,14 @@ export class Graph {
     this.render();
   }
 
-  private data: GraphData;
+  private renderables: Renderable;
   private artist: Artist;
   private callback: NodeClickCallback | undefined;
 
   private render() {
     if (isSSR()) return;
 
-    this.artist.draw(this.drawables);
+    // this.artist.draw(this.drawables);
     window.requestAnimationFrame(() => this.render());
   }
 }

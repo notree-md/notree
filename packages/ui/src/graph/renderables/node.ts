@@ -2,24 +2,39 @@ import { Canvas, Renderable } from '../canvas';
 import { Styles } from '../style';
 import { Animation } from '../animation';
 import { Zoomer } from '../zoomer';
-import { Circle, Focus, Node, NodeClickCallback } from '../types';
+import { Circle, Focus, NodeClickCallback, emptyNodeDatum } from '../types';
+import { Link } from './link';
+import { GraphDataPayload, ServerNode } from '@notree/common';
 
-export class RenderableNode implements Renderable {
+export class Node implements Renderable {
   public lastTimeActive?: number;
 
   constructor(
-    private data: Node,
+    public id: string,
+    public title: string,
+    public totalDescendants: number,
+    public parentNodes: Node[],
+    public childNodes: Node[],
+    public parentLinks: Link[],
+    public childLinks: Link[],
     private styles: Styles,
-    private callback?: NodeClickCallback,
+    public index?: number,
+    public x?: number,
+    public y?: number,
+    public vx?: number,
+    public vy?: number,
+    public fx?: number,
+    public fy?: number,
   ) {
     this.animation = undefined;
+    this.callback = undefined;
     this.current_node_color = this.styles.nodeColor;
     this.circle = {
-      x: this.data.x,
-      y: this.data.y,
+      x: this.x,
+      y: this.y,
       radius:
         styles.minimumNodeSize +
-        (this.data.totalDescendants || 1) ** styles.nodeScaleFactor,
+        (this.totalDescendants || 1) ** styles.nodeScaleFactor,
     };
     this.color_config = {
       active: this.styles.activeNodeColor,
@@ -28,9 +43,49 @@ export class RenderableNode implements Renderable {
     };
   }
 
+  public static fromServerNode(
+    node: ServerNode,
+    styles: Styles,
+    data: GraphDataPayload,
+  ): Node {
+    console.log(node);
+    if (node instanceof Node) return node as unknown as Node;
+
+    const convertedNode = new Node(
+      node.id,
+      node.title,
+      node.totalDescendants,
+      node.parentNodes.map((id) =>
+        Node.fromServerNode(data.nodes[id], styles, data),
+      ),
+      node.childNodes.map((id) =>
+        Node.fromServerNode(data.nodes[id], styles, data),
+      ),
+      node.parentLinks.map((id) =>
+        Link.fromServerLink(data.links[id], styles, data),
+      ),
+      node.childLinks.map((id) =>
+        Link.fromServerLink(data.links[id], styles, data),
+      ),
+      styles,
+      emptyNodeDatum.index,
+      emptyNodeDatum.x,
+      emptyNodeDatum.y,
+      emptyNodeDatum.vx,
+      emptyNodeDatum.vy,
+      emptyNodeDatum.fx,
+      emptyNodeDatum.fy,
+    );
+
+    data.nodes[node.id] = convertedNode as unknown as ServerNode;
+
+    return convertedNode;
+  }
+
   public onClick() {
     if (this.callback) {
-      this.callback(this.data);
+      // TODO
+      // this.callback(this);
     }
   }
 
@@ -45,9 +100,9 @@ export class RenderableNode implements Renderable {
 
     const translatedMouseX = cursor.x - zoomer.x;
     const translatedMouseY = cursor.y - zoomer.y;
-    if (this.data.x && this.data.y) {
-      const scaledNodeX = this.data.x * zoomer.k;
-      const scaledNodeY = this.data.y * zoomer.k;
+    if (this.x && this.y) {
+      const scaledNodeX = this.x * zoomer.k;
+      const scaledNodeY = this.y * zoomer.k;
       const scaledNodeRadius = this.circle.radius * zoomer.k;
       if (
         between(
@@ -75,7 +130,7 @@ export class RenderableNode implements Renderable {
   public draw(canvas: Canvas, focus: Focus): void {
     const radiusPadding =
       focus === 'active' ? this.styles.activeNodeRadiusPadding : 0;
-    const text = this.data.title.split('.md')[0];
+    const text = this.title.split('.md')[0];
 
     const desiredColor = this.color_config[focus];
 
@@ -102,8 +157,8 @@ export class RenderableNode implements Renderable {
         : this.styles.nodeTitlePadding;
     canvas.drawCircle(
       {
-        x: this.data.x,
-        y: this.data.y,
+        x: this.x,
+        y: this.y,
         radius: this.circle.radius + radiusPadding,
       },
       this.current_node_color,
@@ -115,6 +170,7 @@ export class RenderableNode implements Renderable {
     );
   }
 
+  private callback: NodeClickCallback | undefined;
   private circle: Circle;
   private current_node_color: string;
   private animation: Animation<string> | undefined;
