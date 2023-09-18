@@ -1,8 +1,9 @@
-import { Canvas, Renderable } from './canvas';
+import { Canvas } from './canvas';
 import { Zoomer } from './zoomer';
 import { Styles, createStyles, isSSR } from './style';
 import { GraphStyleConfig, Focus } from './types';
 import { Animation } from './animation';
+import { Renderable } from './models';
 
 export interface ArtistArgs {
   style?: Partial<GraphStyleConfig>;

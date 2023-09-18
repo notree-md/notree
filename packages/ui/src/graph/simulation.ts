@@ -1,14 +1,17 @@
 import { GraphSimulationConfig } from './types';
+import { Node, Link } from './models';
 import {
   forceSimulation,
   forceManyBody,
   forceCenter,
   forceLink,
 } from 'd3-force';
-import { GraphData, Node } from './data';
 
 export interface ForceSimulationArgs {
-  data: GraphData;
+  data: {
+    nodes: Node[];
+    links: Link[];
+  };
   width: number;
   height: number;
   simulationConfig?: Partial<GraphSimulationConfig>;

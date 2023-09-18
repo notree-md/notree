@@ -3,6 +3,7 @@ import { Styles } from '../style';
 import { Focus } from '../types';
 import { Animation } from '../animation';
 import { Renderable } from './renderable';
+import { Node } from './node';
 
 export class Link implements Renderable {
   public lastTimeActive?: number;
@@ -11,6 +12,7 @@ export class Link implements Renderable {
     public id: string,
     public source: string,
     public target: string,
+    private nodes: Record<string, Node>,
     private styles: Styles,
     public index?: number,
     public x?: number,
@@ -20,6 +22,7 @@ export class Link implements Renderable {
     public fx?: number,
     public fy?: number,
   ) {
+    this.nodes = nodes;
     this.current_link_color = this.styles.linkColor;
     this.animation = undefined;
     this.color_config = {
@@ -37,8 +40,8 @@ export class Link implements Renderable {
 
   public draw(canvas: Canvas, focus: Focus): void {
     const line = {
-      source: this.source,
-      target: this.target,
+      source: this.nodes[this.source],
+      target: this.nodes[this.target],
     };
 
     const desiredColor = this.color_config[focus];
@@ -59,6 +62,10 @@ export class Link implements Renderable {
       }
     }
     canvas.drawLine(line, this.current_link_color);
+  }
+
+  public isActive() {
+    return false;
   }
 
   private current_link_color: string;

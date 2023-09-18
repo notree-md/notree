@@ -1,30 +1,3 @@
-import { SimulationNodeDatum } from 'd3-force';
-import { Renderable } from './models';
-
-export type Node = {
-  id: string;
-  title: string;
-  totalDescendants: number;
-  parentNodes: Node[];
-  childNodes: Node[];
-  parentLinks: Link[];
-  childLinks: Link[];
-  renderable: Renderable;
-  converted?: true;
-} & SimulationNodeDatum;
-
-export type Link = {
-  source: Node;
-  target: Node;
-  renderable: Renderable;
-  converted?: true;
-} & SimulationNodeDatum;
-
-export type GraphData = {
-  nodes: Node[];
-  links: Link[];
-};
-
 export type Focus = 'active' | 'neutral' | 'inactive';
 
 export type Circle = {

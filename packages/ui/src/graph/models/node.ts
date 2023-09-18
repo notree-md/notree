@@ -89,6 +89,10 @@ export class Node implements Renderable {
     );
   }
 
+  public isActive() {
+    return false;
+  }
+
   private circle: Circle;
   private current_node_color: string;
   private animation: Animation<string> | undefined;
