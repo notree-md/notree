@@ -1,5 +1,5 @@
 import { SimulationNodeDatum } from 'd3-force';
-import { Renderable } from './canvas';
+import {Renderable} from './models';
 
 export type Node = {
   id: string;
