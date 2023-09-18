@@ -12,7 +12,6 @@ export class Link implements Renderable {
     public id: string,
     public source: string,
     public target: string,
-    private nodes: Record<string, Node>,
     private styles: Styles,
     public index?: number,
     public x?: number,
@@ -22,7 +21,6 @@ export class Link implements Renderable {
     public fx?: number,
     public fy?: number,
   ) {
-    this.nodes = nodes;
     this.current_link_color = this.styles.linkColor;
     this.animation = undefined;
     this.color_config = {
@@ -40,8 +38,8 @@ export class Link implements Renderable {
 
   public draw(canvas: Canvas, focus: Focus): void {
     const line = {
-      source: this.nodes[this.source],
-      target: this.nodes[this.target],
+      source: this.source as unknown as Node,
+      target: this.target as unknown as Node,
     };
 
     const desiredColor = this.color_config[focus];

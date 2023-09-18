@@ -26,7 +26,6 @@ export class Graph {
         link.id,
         link.source,
         link.target,
-        this.data.nodes,
         this.artist.styles,
         empty_node_datum.index,
         empty_node_datum.x,
@@ -87,8 +86,6 @@ export class Graph {
   private render() {
     if (isSSR()) return;
 
-    console.log(this.data);
-
     this.artist.draw([
       ...Object.values(this.data.links),
       ...Object.values(this.data.nodes),
@@ -98,7 +95,7 @@ export class Graph {
 
   private artist: Artist;
   private callback: NodeClickCallback | undefined;
-  private data: {
+  public data: {
     links: Record<string, Link>;
     nodes: Record<string, Node>;
   };
