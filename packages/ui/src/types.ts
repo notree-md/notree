@@ -1,25 +1,3 @@
-export type Focus = 'active' | 'neutral' | 'inactive';
-
-export type Circle = {
-  x?: number;
-  y?: number;
-  radius: number;
-};
-
-export type Line = {
-  source: {
-    x?: number;
-    y?: number;
-  };
-  target: {
-    x?: number;
-    y?: number;
-  };
-};
-
-export type NodeClickEvent = { offsetX: number; offsetY: number };
-export type NodeClickCallback = (node: Node) => void;
-
 export type GraphStyleConfig = {
   nodeColor: string;
   activeNodeColor: string;

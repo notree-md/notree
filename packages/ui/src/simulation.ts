@@ -1,5 +1,5 @@
 import { GraphSimulationConfig } from './types';
-import { Node, Link } from './models';
+import { Node, Link } from './canvas/models';
 import {
   forceSimulation,
   forceManyBody,

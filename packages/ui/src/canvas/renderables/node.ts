@@ -1,8 +1,9 @@
 import { Styles } from '../style';
 import { Circle, Focus } from '../types';
-import { Renderable } from './renderable';
+import { CursorPosition, Renderable } from './renderable';
 import { Animation } from '../animation';
 import { Canvas } from '../canvas';
+import { Zoomer } from '../zoomer';
 
 export class Node implements Renderable {
   public lastTimeActive?: number;
@@ -89,7 +90,7 @@ export class Node implements Renderable {
     );
   }
 
-  public isActive() {
+  public isUnderCursor(cursor: CursorPosition, zoomer: Zoomer) {
     return false;
   }
 

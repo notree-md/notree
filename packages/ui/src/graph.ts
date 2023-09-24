@@ -1,14 +1,11 @@
+import { GraphDataPayload } from '@notree/common';
+import { Focus, GraphSimulationConfig } from './types';
+import { startForceSimulation } from './simulation';
+import { Link, Node, Renderable, emptyNodeDatum } from './models';
+import { Styles, createStyles, isSSR } from './style';
 import { Canvas } from './canvas';
 import { Zoomer } from './zoomer';
-import { Styles, createStyles, isSSR } from './style';
-import { GraphStyleConfig, Focus } from './types';
 import { Animation } from './animation';
-import { Renderable } from './models';
-
-export interface ArtistArgs {
-  style?: Partial<GraphStyleConfig>;
-  canvas: HTMLCanvasElement;
-}
 
 interface Layer {
   drawables: Renderable[];
@@ -16,39 +13,51 @@ interface Layer {
   animation?: Animation<number>;
 }
 
-export class Artist {
-  public readonly canvasInitialWidth: number;
-  public readonly canvasInitialHeight: number;
-  public readonly styles: Styles;
+export interface GraphArgs {
+  data: GraphDataPayload;
+  canvas: HTMLCanvasElement;
+  styles?: Partial<Styles>;
+  simulationConfig?: Partial<GraphSimulationConfig>;
+}
 
-  constructor({ style, canvas }: ArtistArgs) {
-    this.canvasInitialWidth = canvas.getBoundingClientRect().width;
-    this.canvasInitialHeight = canvas.getBoundingClientRect().height;
-
+export class Graph {
+  constructor({ data, canvas, styles, simulationConfig }: GraphArgs) {
     this.styles = createStyles(
-      style,
-      this.canvasInitialWidth,
-      this.canvasInitialHeight,
+      styles,
+      canvas.getBoundingClientRect().width,
+      canvas.getBoundingClientRect().height,
     );
-
-    this.visual_canvas = new Canvas(canvas, {
+    this.canvas = new Canvas(canvas, {
       deviceScale: this.styles.deviceScale,
     });
     this.zoomer = new Zoomer();
 
-    this.drawables = [];
-    this.base_layer = {
-      drawables: [],
-      focus: 'neutral',
-    };
-    this.purgatory = {
-      drawables: [],
-      focus: 'neutral',
-    };
-    this.active_layer = {
-      drawables: [],
-      focus: 'active',
-    };
+    this.data = { nodes: {}, links: {} };
+    this.load_data(data);
+
+    this.layers = [
+      { drawables: [], focus: 'neutral' },
+      { drawables: [], focus: 'neutral' },
+      { drawables: [], focus: 'active' },
+    ];
+
+    startForceSimulation({
+      data: {
+        nodes: Object.values(this.data.nodes),
+        links: Object.values(this.data.links),
+      },
+      simulationConfig: {
+        randomizeStartingPoints: true,
+        ...simulationConfig,
+      },
+      width: canvas.getBoundingClientRect().width,
+      height: canvas.getBoundingClientRect().height,
+    });
+  }
+
+  public draw() {
+    this.artist.makeInteractive();
+    this.render();
   }
 
   public draw(drawables: Renderable[]): void {
@@ -64,22 +73,71 @@ export class Artist {
     this.add_mousemove_handler();
   }
 
-  private visual_canvas: Canvas | undefined;
+  private data: {
+    links: Record<string, Link>;
+    nodes: Record<string, Node>;
+  };
+  private styles: Styles;
+  private canvas: Canvas | undefined;
   private cursor: { x: number; y: number } | undefined;
   private zoomer: Zoomer;
-  private drawables: Renderable[];
-  private base_layer: Layer;
-  private active_layer: Layer;
-  private purgatory: Layer;
+  private layers: Layer[];
 
+  private render() {
+    if (isSSR()) return;
+
+    this.artist.draw([
+      ...Object.values(this.data.links),
+      ...Object.values(this.data.nodes),
+    ]);
+    window.requestAnimationFrame(() => this.render());
+  }
+
+  private load_data(data: GraphDataPayload) {
+    for (const [key, link] of Object.entries(data.links)) {
+      this.data.links[key] = new Link(
+        link.id,
+        link.source,
+        link.target,
+        this.styles,
+        emptyNodeDatum.index,
+        emptyNodeDatum.x,
+        emptyNodeDatum.y,
+        emptyNodeDatum.vx,
+        emptyNodeDatum.vy,
+        emptyNodeDatum.fx,
+        emptyNodeDatum.fy,
+      );
+    }
+
+    for (const [key, node] of Object.entries(data.nodes)) {
+      this.data.nodes[key] = new Node(
+        node.id,
+        node.title,
+        node.totalDescendants,
+        node.parentNodes,
+        node.childNodes,
+        node.parentLinks,
+        node.childLinks,
+        this.styles,
+        emptyNodeDatum.index,
+        emptyNodeDatum.x,
+        emptyNodeDatum.y,
+        emptyNodeDatum.vx,
+        emptyNodeDatum.vy,
+        emptyNodeDatum.fx,
+        emptyNodeDatum.fy,
+      );
+    }
+  }
   private redraw(): void {
     this.distribute_drawables();
     this.update_cursor();
 
     const layers = [this.purgatory, this.base_layer, this.active_layer];
 
-    if (this.visual_canvas) {
-      this.visual_canvas.clear();
+    if (this.canvas) {
+      this.canvas.clear();
 
       for (const layer of layers) {
         let layerOpacity =
@@ -91,7 +149,7 @@ export class Artist {
           }
         }
 
-        this.visual_canvas.drawFrame({
+        this.canvas.drawFrame({
           zoomer: this.zoomer,
           drawables: layer.drawables,
           config: {
@@ -111,12 +169,12 @@ export class Artist {
     if (isSSR()) return;
 
     window.addEventListener('resize', () => {
-      this.visual_canvas?.resizeCanvas();
+      this.canvas?.resizeCanvas();
     });
   }
 
   private add_zoom_listener(): void {
-    this.visual_canvas?.call(
+    this.canvas?.call(
       this.zoomer.configureZoomArea<HTMLCanvasElement>({
         width: this.styles.width,
         height: this.styles.height,
@@ -185,14 +243,14 @@ export class Artist {
 
   private update_cursor(): void {
     if (this.active_layer.drawables.length > 0) {
-      this.visual_canvas?.setCursor('pointer');
+      this.canvas?.setCursor('pointer');
     } else {
-      this.visual_canvas?.setCursor('default');
+      this.canvas?.setCursor('default');
     }
   }
 
   private add_click_handler(): void {
-    this.visual_canvas?.on('click', ({ offsetX, offsetY }) => {
+    this.canvas?.on('click', ({ offsetX, offsetY }) => {
       for (const d of this.drawables) {
         if (
           this.cursor &&
@@ -206,7 +264,7 @@ export class Artist {
   }
 
   private add_mousemove_handler(): void {
-    this.visual_canvas?.on('mousemove', ({ offsetX, offsetY }) => {
+    this.canvas?.on('mousemove', ({ offsetX, offsetY }) => {
       this.cursor = { x: offsetX, y: offsetY };
       this.distribute_drawables();
     });
