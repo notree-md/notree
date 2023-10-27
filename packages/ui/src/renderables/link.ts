@@ -1,26 +1,17 @@
-import { Canvas } from '../canvas';
+import { Canvas, Renderable } from '../canvas';
+import { ConfiguredSimulationLink } from '../simulation';
 import { Styles } from '../style';
-import { Focus } from '../types';
 import { Animation } from '../animation';
-import { Renderable } from './renderable';
-import { Node } from './node';
+import { Zoomer } from '../zoomer';
+import { RenderableNode } from './node';
+import { Focus } from '../types';
 
-export class Link implements Renderable {
+export class RenderableLink implements Renderable {
   public lastTimeActive?: number;
 
-  constructor(
-    public id: string,
-    public source: string,
-    public target: string,
-    private styles: Styles,
-    public index?: number,
-    public x?: number,
-    public y?: number,
-    public vx?: number,
-    public vy?: number,
-    public fx?: number,
-    public fy?: number,
-  ) {
+  constructor(simLink: ConfiguredSimulationLink, styles: Styles) {
+    this.sim_link = simLink;
+    this.styles = styles;
     this.current_link_color = this.styles.linkColor;
     this.animation = undefined;
     this.color_config = {
@@ -36,10 +27,25 @@ export class Link implements Renderable {
     this.animation = undefined;
   }
 
+  public isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean {
+    const sourceNode = new RenderableNode(this.sim_link.source, this.styles);
+    const targetNode = new RenderableNode(this.sim_link.target, this.styles);
+
+    const out =
+      sourceNode.isActive(cursor, zoomer) ||
+      targetNode.isActive(cursor, zoomer);
+
+    if (out) {
+      this.lastTimeActive = new Date().getTime();
+    }
+
+    return out;
+  }
+
   public draw(canvas: Canvas, focus: Focus): void {
     const line = {
-      source: this.source as unknown as Node,
-      target: this.target as unknown as Node,
+      source: this.sim_link.source,
+      target: this.sim_link.target,
     };
 
     const desiredColor = this.color_config[focus];
@@ -62,10 +68,8 @@ export class Link implements Renderable {
     canvas.drawLine(line, this.current_link_color);
   }
 
-  public isActive() {
-    return false;
-  }
-
+  private sim_link: ConfiguredSimulationLink;
+  private styles: Styles;
   private current_link_color: string;
   private animation: Animation<string> | undefined;
   private color_config: Record<Focus, string>;

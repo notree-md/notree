@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         titleColor: '#ffffff',
       },
     });
-    // mg.onClick((node) => alert(node.id));
+    mg.onClick((node) => alert(node.id));
     mg.draw();
   } catch (error) {
     alert(error);

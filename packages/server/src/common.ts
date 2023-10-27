@@ -1,14 +1,11 @@
-import { GraphDataPayload, ServerLink, ServerNode } from '@notree/common';
+import { GraphDataPayload, Link, Node } from '@notree/common';
 
 export const MARKDOWN_EXTENSION = '.md';
 export const HIDDEN_FILES_REGEX = /^\./;
 export const LINK_CONTENT_REGEX = /\]\((.*?)\)/g;
 export const PROTOCOL_DELIMITER = '://';
 
-export function extractLinksFromLine(
-  line: string,
-  filePath: string,
-): ServerLink[] {
+export function extractLinksFromLine(line: string, filePath: string): Link[] {
   const formattedLinks = [];
   const links = line.matchAll(LINK_CONTENT_REGEX) || [];
 
@@ -64,10 +61,7 @@ export function formatGraphForTestSnapshot(data: GraphDataPayload) {
   };
 }
 
-export function newNode({
-  id,
-  title,
-}: Pick<ServerNode, 'id' | 'title'>): ServerNode {
+export function newNode({ id, title }: Pick<Node, 'id' | 'title'>): Node {
   return {
     id,
     title,
@@ -94,7 +88,7 @@ export function backfillGraph(data: GraphDataPayload): GraphDataPayload {
   return data;
 }
 
-function count_children(node: ServerNode, data: GraphDataPayload) {
+function count_children(node: Node, data: GraphDataPayload) {
   let count = node.childNodes.length;
   if (!count) return count;
 
@@ -105,7 +99,7 @@ function count_children(node: ServerNode, data: GraphDataPayload) {
   return count;
 }
 
-function new_link({ source, target }: Pick<ServerLink, 'source' | 'target'>) {
+function new_link({ source, target }: Pick<Link, 'source' | 'target'>) {
   return {
     source,
     target,
@@ -113,7 +107,7 @@ function new_link({ source, target }: Pick<ServerLink, 'source' | 'target'>) {
   };
 }
 
-function link_id({ source, target }: Pick<ServerLink, 'source' | 'target'>) {
+function link_id({ source, target }: Pick<Link, 'source' | 'target'>) {
   return `${source}:${target}`;
 }
 

@@ -1,20 +1,20 @@
-export type ServerNode = {
+export type Node = {
   id: string;
   title: string;
   totalDescendants: number;
-  parentNodes: ServerNode['id'][];
-  childNodes: ServerNode['id'][];
-  parentLinks: ServerLink['id'][];
-  childLinks: ServerLink['id'][];
+  parentNodes: Node['id'][];
+  childNodes: Node['id'][];
+  parentLinks: Link['id'][];
+  childLinks: Link['id'][];
 };
 
-export type ServerLink = {
+export type Link = {
   id: string;
   source: string;
   target: string;
 };
 
 export type GraphDataPayload = {
-  nodes: Record<string, ServerNode>;
-  links: Record<string, ServerLink>;
+  nodes: Record<string, Node>;
+  links: Record<string, Link>;
 };

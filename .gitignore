@@ -25,5 +25,5 @@ dist-ssr
 
 *.mp4
 
-packages/ui/cypress/screenshots/
-packages/ui/cypress/snapshots/diff/
+packages/draw/cypress/screenshots/
+packages/draw/cypress/snapshots/diff/

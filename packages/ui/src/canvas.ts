@@ -1,50 +1,57 @@
 import { create, select, Selection } from 'd3-selection';
-import { zoom, zoomIdentity, ZoomTransform } from 'd3-zoom';
-import { Line, Circle, Focus, ZoomAreaConfiguration } from './types';
-import { Renderable } from './renderables';
+import { NodeClickEvent, Line, Circle, Focus } from './types';
+import { Zoomer } from './zoomer';
+
+export interface Renderable {
+  lastTimeActive?: number;
+  reset(): void;
+  draw(canvas: Canvas, focus: Focus): void;
+  isActive(cursor: { x: number; y: number }, zoomer: Zoomer): boolean;
+  onClick?(): void;
+  onHover?(): void;
+}
 
 export class Canvas {
   constructor(
     canvasElement: HTMLCanvasElement | undefined,
     config?: {
-      device_scale?: number;
+      deviceScale?: number;
       initialWidth?: number;
       initialHeight?: number;
     },
   ) {
-    this.zoom_transform = zoomIdentity;
-    this.device_scale = config?.device_scale;
+    this.deviceScale = config?.deviceScale;
     this.canvasElement = canvasElement
       ? select(canvasElement)
       : create('canvas');
     this.context = this.canvasElement.node()?.getContext('2d') || undefined;
     const resizer = new ResizeObserver(() => {
-      this.resize();
+      this.resizeCanvas();
     });
     if (this.canvasElement) {
       resizer.observe(this.canvasElement.node() as Element);
     }
-    this.resize(config?.initialWidth, config?.initialHeight);
+    this.resizeCanvas(config?.initialWidth, config?.initialHeight);
   }
 
-  public resize(initialWidth?: number, initialHeight?: number): void {
+  public resizeCanvas(initialWidth?: number, initialHeight?: number): void {
     const elNode = this.canvasElement.node();
     if (elNode) {
       const currElWidth = elNode.getBoundingClientRect().width;
       const currElHeight = elNode.getBoundingClientRect().height;
-      const appliedWidth = this.device_scale
-        ? this.device_scale * currElWidth
+      const appliedWidth = this.deviceScale
+        ? this.deviceScale * currElWidth
         : currElWidth;
-      const appliedHeight = this.device_scale
-        ? this.device_scale * currElHeight
+      const appliedHeight = this.deviceScale
+        ? this.deviceScale * currElHeight
         : currElHeight;
 
       this.canvasElement.attr('width', initialWidth || appliedWidth);
       this.canvasElement.attr('height', initialHeight || appliedHeight);
     }
 
-    if (this.device_scale) {
-      this.context?.scale(this.device_scale, this.device_scale);
+    if (this.deviceScale) {
+      this.context?.scale(this.deviceScale, this.deviceScale);
     }
   }
 
@@ -119,15 +126,17 @@ export class Canvas {
   }
 
   public drawFrame({
-    renderables,
+    zoomer,
+    drawables,
     config,
   }: {
-    renderables: Renderable[];
+    zoomer: Zoomer;
+    drawables: Renderable[];
     config: {
       layer: {
         opacity: number;
       };
-      renderables: {
+      drawables: {
         focus: Focus;
       };
     };
@@ -136,15 +145,21 @@ export class Canvas {
 
     this.context.save();
 
-    this.context.translate(this.zoom_transform.x, this.zoom_transform.y);
-    this.context.scale(this.zoom_transform.k, this.zoom_transform.k);
+    this.context.translate(zoomer.x, zoomer.y);
+    this.context.scale(zoomer.k, zoomer.k);
     this.context.globalAlpha = config.layer.opacity;
 
-    for (const renderable of renderables) {
-      renderable.draw(this, config.renderables.focus);
+    for (const drawable of drawables) {
+      drawable.draw(this, config.drawables.focus);
     }
 
     this.context.restore();
+  }
+
+  public on(event: 'click', callback: (args: NodeClickEvent) => void): void;
+  public on(event: 'mousemove', callback: (args: MouseEvent) => void): void;
+  public on(event: never, callback: never): void {
+    this.canvasElement.on(event, callback);
   }
 
   public call(
@@ -159,21 +174,6 @@ export class Canvas {
     this.canvasElement.style('cursor', style);
   }
 
-  public configureZoomArea<TArea extends Element>(
-    config: ZoomAreaConfiguration,
-  ) {
-    return zoom<TArea, unknown>()
-      .extent([
-        [0, 0],
-        [config.width, config.height],
-      ])
-      .scaleExtent([config.minZoom, config.maxZoom])
-      .on('zoom', (e: { transform: ZoomTransform }) => {
-        this.zoom_transform = e.transform;
-        config.observers?.forEach((f) => f());
-      });
-  }
-
   private canvasElement: Selection<
     HTMLCanvasElement,
     undefined,
@@ -181,6 +181,5 @@ export class Canvas {
     undefined
   >;
   private context: CanvasRenderingContext2D | undefined;
-  private device_scale: number | undefined;
-  private zoom_transform: ZoomTransform;
+  private deviceScale: number | undefined;
 }

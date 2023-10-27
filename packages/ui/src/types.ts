@@ -1,3 +1,35 @@
+import type { Node } from '@notree/common';
+import { SimulationNodeDatum } from 'd3-force';
+
+export type Focus = 'active' | 'neutral' | 'inactive';
+
+export type Circle = {
+  x?: number;
+  y?: number;
+  radius: number;
+};
+
+export type Line = {
+  source: {
+    x?: number;
+    y?: number;
+  };
+  target: {
+    x?: number;
+    y?: number;
+  };
+};
+
+export type SimulationNode = SimulationNodeDatum & Node;
+
+export type SimulationLink = SimulationNodeDatum & {
+  source: SimulationNode;
+  target: SimulationNode;
+};
+
+export type NodeClickEvent = { offsetX: number; offsetY: number };
+export type NodeClickCallback = (node: SimulationNode) => void;
+
 export type GraphStyleConfig = {
   nodeColor: string;
   activeNodeColor: string;
