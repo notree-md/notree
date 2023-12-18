@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "open source frontend ecosystem for notree",
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly",
+    "build": "vite build",
     "lint": "eslint src/**; eslint cypress",
     "typecheck": "tsc --noEmit",
     "dev": "node example/server.js",
@@ -15,15 +15,15 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/ui.umd.cjs",
-  "module": "./dist/ui.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/ui.js",
-      "require": "./dist/ui.umd.cjs"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/ui.js"
     }
   },
+  "main": "./dist/ui.js",
+  "module": "./dist/ui.js",
+  "types": "./dist/index.d.ts",
   "devDependencies": {
     "@notree/common": "workspace:*",
     "@notree/server": "workspace:*",
@@ -37,6 +37,7 @@
     "eslint-plugin-cypress": "^2.13.3",
     "express": "^4.18.2",
     "vite": "^4.3.9",
+    "vite-plugin-dts": "^3.6.4",
     "vitest": "^0.31.1",
     "wait-on": "^7.0.1"
   },
