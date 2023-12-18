@@ -1,6 +1,6 @@
 {
   "name": "@notree/common",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "shared code for @notree/*",
   "scripts": {
     "build": "tsc",

@@ -1,5 +1,11 @@
 # @notree/ui
 
+## 0.3.0
+
+### Minor Changes
+
+- 61da268: refactor: fix exports
+
 ## 0.2.0
 
 ### Minor Changes
