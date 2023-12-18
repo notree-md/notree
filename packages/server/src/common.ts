@@ -81,19 +81,28 @@ export function backfillGraph(data: GraphDataPayload): GraphDataPayload {
     data.nodes[link.target].parentNodes.push(link.source);
   }
 
+  const seen: Record<string, boolean> = {};
+
   for (const node of Object.values(data.nodes)) {
-    node.totalDescendants = count_children(node, data);
+    seen[node.id] = true;
+    node.totalDescendants = count_children(node, data, seen);
   }
 
   return data;
 }
 
-function count_children(node: Node, data: GraphDataPayload) {
+function count_children(
+  node: Node,
+  data: GraphDataPayload,
+  seen: Record<string, boolean>,
+) {
   let count = node.childNodes.length;
   if (!count) return count;
 
   for (const child of node.childNodes) {
-    count += count_children(data.nodes[child], data);
+    if (!seen[child]) {
+      count += count_children(data.nodes[child], data, seen);
+    }
   }
 
   return count;
