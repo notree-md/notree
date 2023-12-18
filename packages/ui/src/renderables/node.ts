@@ -22,7 +22,7 @@ export class RenderableNode implements Renderable {
       y: this.sim_node.y,
       radius:
         styles.minimumNodeSize +
-        (this.sim_node.linkCount || 1) ** styles.nodeScaleFactor,
+        (this.sim_node.totalDescendants || 1) ** styles.nodeScaleFactor,
     };
     this.color_config = {
       active: this.styles.activeNodeColor,
@@ -78,7 +78,7 @@ export class RenderableNode implements Renderable {
   public draw(canvas: Canvas, focus: Focus): void {
     const radiusPadding =
       focus === 'active' ? this.styles.activeNodeRadiusPadding : 0;
-    const text = this.sim_node.name.split('.md')[0];
+    const text = this.sim_node.title.split('.md')[0];
 
     const desiredColor = this.color_config[focus];
 

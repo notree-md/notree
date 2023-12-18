@@ -1,4 +1,4 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 import { Graph } from '../src/graph';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const data: GraphData = await fetch('/api/notes').then((response) =>
+    const data: GraphDataPayload = await fetch('/api/notes').then((response) =>
       response.json(),
     );
     const mg: Graph = new Graph({

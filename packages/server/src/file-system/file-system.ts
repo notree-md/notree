@@ -1,7 +1,12 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 import * as fs from 'fs';
 import * as readline from 'node:readline';
-import { HIDDEN_FILES_REGEX, extractLinksFromLine } from '../common';
+import {
+  HIDDEN_FILES_REGEX,
+  extractLinksFromLine,
+  backfillGraph,
+  newNode,
+} from '../common';
 import { Provider } from '../types';
 
 export interface FileSystemProviderArgs {
@@ -10,62 +15,47 @@ export interface FileSystemProviderArgs {
 
 export const FileSystem: Provider<FileSystemProviderArgs> = {
   async read({ path }) {
-    return build_graph(path);
+    const data = await gather_objects_from_directory(path);
+    return backfillGraph(data);
   },
 };
 
-async function build_graph(
+async function gather_objects_from_directory(
   path: string,
-  graph: GraphData = { nodes: [], links: [] },
-): Promise<GraphData> {
-  const dir = await fs.promises.opendir(path);
+  data: GraphDataPayload = { nodes: {}, links: {} },
+): Promise<GraphDataPayload> {
+  const directory = await fs.promises.opendir(path);
 
-  for await (const dirent of dir) {
-    await add_dirent_to_graph(path, dirent, graph);
+  for await (const dirent of directory) {
+    if (HIDDEN_FILES_REGEX.test(dirent.name)) continue;
+
+    const direntPath = `${path}/${dirent.name}`;
+    if (dirent.isDirectory()) {
+      await gather_objects_from_directory(direntPath, data);
+    } else if (dirent.isFile()) {
+      await gather_links_from_file(direntPath, data);
+      data.nodes[direntPath] = newNode({ id: direntPath, title: dirent.name });
+    }
   }
 
-  return graph;
+  return data;
 }
 
-async function add_dirent_to_graph(
-  path: string,
-  dirent: fs.Dirent,
-  graph: GraphData,
-) {
-  if (HIDDEN_FILES_REGEX.test(dirent.name)) return;
-
-  const direntPath = `${path}/${dirent.name}`;
-
-  if (dirent.isDirectory()) {
-    await build_graph(direntPath, graph);
-  } else if (dirent.isFile()) {
-    const linkCount = await add_links_to_graph(direntPath, graph);
-
-    graph.nodes.push({
-      id: direntPath,
-      name: dirent.name,
-      linkCount,
-    });
-  }
-}
-
-async function add_links_to_graph(
+async function gather_links_from_file(
   filePath: string,
-  graph: GraphData,
-): Promise<number> {
-  let linkCount = 0;
-
+  data: GraphDataPayload,
+): Promise<void> {
   const fileStream = fs.createReadStream(filePath);
   const lines = readline.createInterface({ input: fileStream });
 
   for await (const line of lines) {
     const links = extractLinksFromLine(line, filePath);
-    linkCount += links.length;
-
     for (const link of links) {
-      graph.links.push(link);
+      if (data.links[link.id]) {
+        link.id = link.id + '_';
+      }
+
+      data.links[link.id] = link;
     }
   }
-
-  return linkCount;
 }

@@ -1,4 +1,4 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 import { Artist } from './artist';
 import { Renderable } from './canvas';
 import { RenderableLink, RenderableNode } from './renderables';
@@ -7,7 +7,7 @@ import { GraphSimulationConfig, NodeClickCallback } from './types';
 import { Styles, isSSR } from './style';
 
 export interface GraphArgs {
-  data: GraphData;
+  data: GraphDataPayload;
   canvas: HTMLCanvasElement;
   styles?: Partial<Styles>;
   simulationConfig?: Partial<GraphSimulationConfig>;
@@ -68,3 +68,8 @@ export class Graph {
     window.requestAnimationFrame(() => this.render());
   }
 }
+
+// what I want to do
+// const focused = nodes.find(is_under_cursor);
+// focused.children.forEach(link_or_node => link_or_node.activate())
+// focused.parents(): Node[]

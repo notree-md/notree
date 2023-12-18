@@ -1,8 +1,13 @@
 import axios from 'axios';
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 import { Provider } from '../types';
 import { Octokit } from 'octokit';
-import { HIDDEN_FILES_REGEX, extractLinksFromLine } from '../common';
+import {
+  HIDDEN_FILES_REGEX,
+  backfillGraph,
+  extractLinksFromLine,
+  newNode,
+} from '../common';
 
 const DEFAULT_BRANCH_NAME = 'main';
 const DEFAULT_BASE_PATH = '';
@@ -33,7 +38,8 @@ export const GitHub: Provider<GitHubProviderArgs> = {
       ref: `heads/${branch}`,
     });
 
-    return build_graph(octo, { owner, repo, path: basePath, ref });
+    const data = await build_graph(octo, { owner, repo, path: basePath, ref });
+    return backfillGraph(data);
   },
 };
 
@@ -54,7 +60,7 @@ type AddResultToGraphArgs = BuildGraphArgs & { result: GitHubResult };
 async function build_graph(
   octo: Octokit,
   { owner, repo, path, ref }: BuildGraphArgs,
-  graph: GraphData = { nodes: [], links: [] },
+  graph: GraphDataPayload = { nodes: {}, links: {} },
 ) {
   const dir = await octo.rest.repos
     .getContent({
@@ -87,35 +93,24 @@ async function build_graph(
 async function add_result_to_graph(
   octo: Octokit,
   { result, path, owner, repo, ref }: AddResultToGraphArgs,
-  graph: GraphData,
+  graph: GraphDataPayload,
 ) {
   if (HIDDEN_FILES_REGEX.test(result.name)) return;
 
   const resultPath = `${path}/${result.name}`;
-
   if (result.type === 'dir') {
     await build_graph(octo, { owner, repo, path: resultPath, ref }, graph);
   } else if (result.type === 'file') {
-    const linkCount = await add_links_to_graph(
-      { result, path: resultPath },
-      graph,
-    );
-
-    graph.nodes.push({
-      id: resultPath,
-      name: result.name,
-      linkCount,
-    });
+    await add_links_to_graph({ result, path: resultPath }, graph);
+    graph.nodes[resultPath] = newNode({ id: resultPath, title: result.name });
   }
 }
 
 async function add_links_to_graph(
   { result, path }: Pick<AddResultToGraphArgs, 'result' | 'path'>,
-  graph: GraphData,
-): Promise<number> {
-  if (!result.download_url) return 0;
-
-  let linkCount = 0;
+  graph: GraphDataPayload,
+): Promise<void> {
+  if (!result.download_url) return;
 
   const lines = await axios
     .get<string>(result.download_url)
@@ -124,12 +119,13 @@ async function add_links_to_graph(
 
   for (const line of lines) {
     const links = extractLinksFromLine(line, path);
-    linkCount += links.length;
 
     for (const link of links) {
-      graph.links.push(link);
+      if (graph.links[link.id]) {
+        link.id = link.id + '_';
+      }
+
+      graph.links[link.id] = link;
     }
   }
-
-  return linkCount;
 }

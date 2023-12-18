@@ -14,6 +14,7 @@ describe('Read package common functions', () => {
     );
     expect(links).toStrictEqual([
       {
+        id: 'path/to/notes/currentfile.md:path/to/notes/next.md',
         source: 'path/to/notes/currentfile.md',
         target: 'path/to/notes/next.md',
       },
@@ -27,10 +28,12 @@ describe('Read package common functions', () => {
     );
     expect(links).toStrictEqual([
       {
+        id: 'path/to/notes/currentfile.md:path/to/notes/firstlink.md',
         source: 'path/to/notes/currentfile.md',
         target: 'path/to/notes/firstlink.md',
       },
       {
+        id: 'path/to/notes/currentfile.md:path/to/notes/secondlink.md',
         source: 'path/to/notes/currentfile.md',
         target: 'path/to/notes/secondlink.md',
       },
@@ -44,6 +47,7 @@ describe('Read package common functions', () => {
     );
     expect(links).toStrictEqual([
       {
+        id: 'path/to/notes/current.md:link.md',
         source: 'path/to/notes/current.md',
         target: 'link.md',
       },

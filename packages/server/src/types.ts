@@ -1,5 +1,5 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 
 export interface Provider<TConfig> {
-  read(args: TConfig): Promise<GraphData>;
+  read(args: TConfig): Promise<GraphDataPayload>;
 }

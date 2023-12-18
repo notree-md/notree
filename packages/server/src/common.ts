@@ -1,28 +1,11 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload, Link, Node } from '@notree/common';
 
 export const MARKDOWN_EXTENSION = '.md';
 export const HIDDEN_FILES_REGEX = /^\./;
 export const LINK_CONTENT_REGEX = /\]\((.*?)\)/g;
 export const PROTOCOL_DELIMITER = '://';
 
-export function formatGraphForTestSnapshot(data: GraphData) {
-  return {
-    nodes: data.nodes
-      .map((n) => ({ name: n.name, linkCount: n.linkCount }))
-      .sort((a, b) => (a.name > b.name ? 1 : -1)),
-    links: data.links
-      .map((l) => ({
-        source: l.source.split('/').at(-1)!,
-        target: l.target.split('/').at(-1),
-      }))
-      .sort((a, b) => (a.source > b.source ? 1 : -1)),
-  };
-}
-
-export function extractLinksFromLine(
-  line: string,
-  filePath: string,
-): GraphData['links'] {
+export function extractLinksFromLine(line: string, filePath: string): Link[] {
   const formattedLinks = [];
   const links = line.matchAll(LINK_CONTENT_REGEX) || [];
 
@@ -47,14 +30,89 @@ export function extractLinksFromLine(
         }
       }
 
-      formattedLinks.push({
-        source: filePath,
-        target: pathToTargetFile.join('/'),
-      });
+      formattedLinks.push(
+        new_link({
+          source: filePath,
+          target: pathToTargetFile.join('/'),
+        }),
+      );
     }
   }
 
   return formattedLinks;
+}
+
+export function formatGraphForTestSnapshot(data: GraphDataPayload) {
+  return {
+    nodes: Object.values(data.nodes)
+      .map((n) => ({
+        title: n.title,
+        parentNodes: n.parentNodes.map(truncate_path_for_test_snapshot),
+        childNodes: n.childNodes.map(truncate_path_for_test_snapshot),
+        totalDescendants: n.totalDescendants,
+      }))
+      .sort((a, b) => (a.title > b.title ? 1 : -1)),
+    links: Object.values(data.links)
+      .map((l) => ({
+        source: truncate_path_for_test_snapshot(l.source),
+        target: truncate_path_for_test_snapshot(l.target),
+      }))
+      .sort((a, b) => (a.source > b.source ? 1 : -1)),
+  };
+}
+
+export function newNode({ id, title }: Pick<Node, 'id' | 'title'>): Node {
+  return {
+    id,
+    title,
+    totalDescendants: 0,
+    parentLinks: [],
+    parentNodes: [],
+    childLinks: [],
+    childNodes: [],
+  };
+}
+
+export function backfillGraph(data: GraphDataPayload): GraphDataPayload {
+  for (const link of Object.values(data.links)) {
+    data.nodes[link.source].childLinks.push(link.id);
+    data.nodes[link.source].childNodes.push(link.target);
+    data.nodes[link.target].parentLinks.push(link.id);
+    data.nodes[link.target].parentNodes.push(link.source);
+  }
+
+  for (const node of Object.values(data.nodes)) {
+    node.totalDescendants = count_children(node, data);
+  }
+
+  return data;
+}
+
+function count_children(node: Node, data: GraphDataPayload) {
+  let count = node.childNodes.length;
+  if (!count) return count;
+
+  for (const child of node.childNodes) {
+    count += count_children(data.nodes[child], data);
+  }
+
+  return count;
+}
+
+function new_link({ source, target }: Pick<Link, 'source' | 'target'>) {
+  return {
+    source,
+    target,
+    id: link_id({ source, target }),
+  };
+}
+
+function link_id({ source, target }: Pick<Link, 'source' | 'target'>) {
+  return `${source}:${target}`;
+}
+
+function truncate_path_for_test_snapshot(path: string) {
+  return path.split('/').at(-1) || 'none';
 }
 
 function is_valid_link_path(path: string | undefined): path is string {

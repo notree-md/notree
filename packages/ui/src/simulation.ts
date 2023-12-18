@@ -1,4 +1,4 @@
-import { GraphData } from '@notree/common';
+import { GraphDataPayload } from '@notree/common';
 import { map } from 'd3-array';
 import { GraphSimulationConfig, SimulationNode } from './types';
 import {
@@ -16,7 +16,7 @@ export type ConfiguredSimulationLink = SimulationNodeDatum & {
 };
 
 export interface SimulationArgs {
-  data: GraphData;
+  data: GraphDataPayload;
   width: number;
   height: number;
   simulationConfig?: Partial<GraphSimulationConfig>;
@@ -33,9 +33,9 @@ export class Simulation {
     width,
     height,
   }: SimulationArgs) {
-    this.nodes = map(nodes, merge_node_datum);
+    this.nodes = map(Object.values(nodes), merge_node_datum);
     this.links = map(
-      links,
+      Object.values(links),
       merge_node_datum,
     ) as unknown as ConfiguredSimulationLink[];
     this.configuration = {
@@ -96,9 +96,9 @@ type BuildSimulationArgs = {
   height: number;
 };
 
-function merge_node_datum<TDatum extends Record<string, string | number>>(
-  datum: TDatum,
-) {
+function merge_node_datum<
+  TDatum extends Record<string, string | number | string[]>,
+>(datum: TDatum) {
   return {
     ...empty_node_datum,
     ...datum,
