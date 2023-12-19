@@ -1,6 +1,6 @@
 {
   "name": "@notree/server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "open source backend ecosystem for notree",
   "scripts": {
     "build": "rollup -c",

@@ -1,5 +1,11 @@
 # @notree/server
 
+## 0.2.1
+
+### Patch Changes
+
+- fix: count child node loop
+
 ## 0.2.0
 
 ### Minor Changes
