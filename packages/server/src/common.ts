@@ -81,7 +81,6 @@ export function backfillGraph(data: GraphDataPayload): GraphDataPayload {
     data.nodes[link.target].parentNodes.push(link.source);
   }
 
-
   for (const node of Object.values(data.nodes)) {
     node.totalDescendants = count_children(node, data);
   }
